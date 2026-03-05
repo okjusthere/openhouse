@@ -215,9 +215,21 @@ export default function LandingPage() {
       <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-4">
         <div className="floating-nav flex h-14 w-full max-w-4xl items-center justify-between rounded-full border border-border/50 px-2 shadow-lg shadow-black/[0.03]">
           <Link href="/" className="inline-flex items-center gap-2.5 pl-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-bold text-white shadow-sm">
-              OH
-            </div>
+            <svg viewBox="0 0 512 512" className="h-8 w-8 shrink-0" aria-label="Kevv logo">
+              <defs>
+                <linearGradient id="navKevvGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#10b981" />
+                  <stop offset="100%" stopColor="#0f766e" />
+                </linearGradient>
+              </defs>
+              <rect x="22" y="22" width="468" height="468" rx="108" fill="url(#navKevvGrad)" />
+              <rect x="118" y="100" width="42" height="312" rx="21" fill="#fff" />
+              <rect x="148" y="218" width="42" height="148" rx="21" fill="#fff" transform="rotate(-45 169 292)" />
+              <rect x="148" y="148" width="42" height="148" rx="21" fill="#fff" transform="rotate(45 169 222)" />
+              <rect x="290" y="180" width="30" height="152" rx="15" fill="#fff" />
+              <rect x="338" y="210" width="30" height="92" rx="15" fill="#fff" />
+              <rect x="386" y="235" width="30" height="42" rx="15" fill="#fff" />
+            </svg>
             <span className="text-sm font-semibold tracking-wide">OpenHouse</span>
           </Link>
 

@@ -1,21 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="OpenHouse icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kevv icon">
   <defs>
-    <linearGradient id="openhouseIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="kevvIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#10b981" />
       <stop offset="100%" stop-color="#0f766e" />
     </linearGradient>
   </defs>
-  <rect x="22" y="22" width="468" height="468" rx="108" fill="url(#openhouseIconGradient)" />
-  <text
-    x="50%"
-    y="50%"
-    dominant-baseline="middle"
-    text-anchor="middle"
-    font-family="Segoe UI, Arial, sans-serif"
-    font-size="176"
-    font-weight="700"
-    fill="#ffffff"
-  >
-    OH
-  </text>
+  <rect x="22" y="22" width="468" height="468" rx="108" fill="url(#kevvIconGradient)" />
+  <!-- K letter -->
+  <rect x="118" y="100" width="42" height="312" rx="21" fill="#ffffff"/>
+  <rect x="148" y="218" width="42" height="148" rx="21" fill="#ffffff" transform="rotate(-45 169 292)"/>
+  <rect x="148" y="148" width="42" height="148" rx="21" fill="#ffffff" transform="rotate(45 169 222)"/>
+  <!-- Sound bars -->
+  <rect x="290" y="180" width="30" height="152" rx="15" fill="#ffffff"/>
+  <rect x="338" y="210" width="30" height="92" rx="15" fill="#ffffff"/>
+  <rect x="386" y="235" width="30" height="42" rx="15" fill="#ffffff"/>
 </svg>

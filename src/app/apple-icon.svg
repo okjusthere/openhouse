@@ -1,21 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="OpenHouse Apple icon">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Kevv Apple icon">
   <defs>
-    <linearGradient id="openhouseAppleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="kevvAppleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#10b981" />
       <stop offset="100%" stop-color="#0f766e" />
     </linearGradient>
   </defs>
-  <rect x="8" y="8" width="164" height="164" rx="42" fill="url(#openhouseAppleGradient)" />
-  <text
-    x="50%"
-    y="50%"
-    dominant-baseline="middle"
-    text-anchor="middle"
-    font-family="Segoe UI, Arial, sans-serif"
-    font-size="66"
-    font-weight="700"
-    fill="#ffffff"
-  >
-    OH
-  </text>
+  <rect x="8" y="8" width="164" height="164" rx="42" fill="url(#kevvAppleGradient)" />
+  <!-- K letter -->
+  <rect x="40" y="35" width="15" height="110" rx="7.5" fill="#ffffff"/>
+  <rect x="51" y="76" width="15" height="52" rx="7.5" fill="#ffffff" transform="rotate(-45 58.5 102)"/>
+  <rect x="51" y="52" width="15" height="52" rx="7.5" fill="#ffffff" transform="rotate(45 58.5 78)"/>
+  <!-- Sound bars -->
+  <rect x="101" y="63" width="11" height="54" rx="5.5" fill="#ffffff"/>
+  <rect x="118" y="73" width="11" height="34" rx="5.5" fill="#ffffff"/>
+  <rect x="135" y="82" width="11" height="16" rx="5.5" fill="#ffffff"/>
 </svg>
