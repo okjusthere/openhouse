@@ -268,7 +268,7 @@ export default function LandingPage() {
               </span>
               .
             </h1>
-            <p className="mt-6 max-w-2xl text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               OpenHouse is an AI-native event workflow for modern brokerages: branded sign-in,
               automatic lead scoring, enrichment, and seller-ready reporting in one operational
               surface.
@@ -298,12 +298,12 @@ export default function LandingPage() {
                   className="rounded-2xl border border-border/50 bg-card/70 px-4 py-3.5 backdrop-blur"
                 >
                   <p className="font-display text-2xl font-semibold text-emerald-700">{stat.value}</p>
-                  <p className="mt-1.5 text-xs text-muted-foreground">{stat.label}</p>
+                  <p className="mt-1.5 text-sm text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
             </div>
 
-            <p className="mt-7 inline-flex items-center gap-2 rounded-full border border-border/40 bg-card/50 px-3.5 py-2 text-xs text-muted-foreground">
+            <p className="mt-7 inline-flex items-center gap-2 rounded-full border border-border/40 bg-card/50 px-3.5 py-2 text-sm text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" />
               AI outputs are draft-first. Human review stays in your workflow.
             </p>
@@ -400,7 +400,7 @@ export default function LandingPage() {
                 Morning brief, not a generic AI tool.
               </h2>
             </div>
-            <p className="text-[15px] text-muted-foreground lg:text-right">
+            <p className="text-base text-muted-foreground lg:text-right">
               Each module maps to how North American agents actually run events, qualify visitors,
               and report outcomes.
             </p>
@@ -415,8 +415,8 @@ export default function LandingPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 font-display text-sm font-semibold text-emerald-700 transition-colors group-hover:bg-emerald-500/15">
                   {pillar.id}
                 </div>
-                <h3 className="mt-4 text-[15px] font-semibold leading-snug">{pillar.title}</h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                <h3 className="mt-4 text-base font-semibold leading-snug">{pillar.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {pillar.description}
                 </p>
               </article>
@@ -436,7 +436,7 @@ export default function LandingPage() {
               <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
                 Open. Scan. Score. Follow up.
               </h2>
-              <p className="mt-4 text-[15px] text-muted-foreground">
+              <p className="mt-4 text-base text-muted-foreground">
                 A single operating loop, from event launch to post-event outreach.
               </p>
             </div>
@@ -453,8 +453,8 @@ export default function LandingPage() {
                   <div className="mt-3 inline-flex rounded-xl bg-emerald-500/10 p-2 text-emerald-700">
                     <item.icon className="h-4 w-4" />
                   </div>
-                  <h3 className="mt-4 text-[15px] font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{item.description}</p>
+                  <h3 className="mt-4 text-base font-semibold">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
                 </article>
               ))}
             </div>
@@ -472,7 +472,7 @@ export default function LandingPage() {
             <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
               Different lead tiers, different operating moves.
             </h2>
-            <p className="mt-4 text-[15px] text-muted-foreground">
+            <p className="mt-4 text-base text-muted-foreground">
               OpenHouse does not flatten every visitor into one sequence. It aligns recommendations
               to urgency and likelihood.
             </p>
@@ -484,8 +484,8 @@ export default function LandingPage() {
                   type="button"
                   onClick={() => setActivePreview(item.key)}
                   className={`w-full rounded-2xl border p-3.5 text-left transition-all duration-200 ${activePreview === item.key
-                      ? "border-emerald-500/35 bg-emerald-500/8 shadow-sm"
-                      : "border-border/50 bg-card/50 hover:border-emerald-500/20 hover:bg-card/70"
+                    ? "border-emerald-500/35 bg-emerald-500/8 shadow-sm"
+                    : "border-border/50 bg-card/50 hover:border-emerald-500/20 hover:bg-card/70"
                     }`}
                 >
                   <p className="text-sm font-medium">{item.label}</p>
@@ -503,7 +503,7 @@ export default function LandingPage() {
               <Clock3 className="h-4 w-4 text-emerald-700" />
             </div>
             <h3 className="mt-4 text-lg font-semibold">{selectedPreview.title}</h3>
-            <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">{selectedPreview.body}</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{selectedPreview.body}</p>
 
             <div className="mt-5 flex flex-wrap gap-2">
               {selectedPreview.tags.map((tag) => (
@@ -526,7 +526,7 @@ export default function LandingPage() {
                   "Outreach copy is generated in the same workflow context.",
                   "Seller reporting remains aligned with lead actions.",
                 ].map((line) => (
-                  <li key={line} className="flex items-start gap-2 text-[13px] text-muted-foreground">
+                  <li key={line} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
                     <span>{line}</span>
                   </li>
@@ -559,8 +559,8 @@ export default function LandingPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
                     {profile.role}
                   </p>
-                  <h3 className="mt-3 text-[15px] font-semibold">{profile.title}</h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{profile.description}</p>
+                  <h3 className="mt-3 text-base font-semibold">{profile.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{profile.description}</p>
                 </article>
               ))}
             </div>
@@ -568,14 +568,14 @@ export default function LandingPage() {
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <article className="rounded-[24px] border border-border/50 bg-card/65 p-5 md:p-6">
                 <p className="text-sm font-semibold">Operational guardrail</p>
-                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   OpenHouse is a lead operations platform. It is not legal, tax, MLS, fair housing,
                   or RESPA compliance advice.
                 </p>
               </article>
               <article className="rounded-[24px] border border-border/50 bg-card/65 p-5 md:p-6">
                 <p className="text-sm font-semibold">Publishing expectation</p>
-                <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   AI-generated recommendations and follow-up drafts should be reviewed by your team
                   before outbound use.
                 </p>
@@ -605,8 +605,8 @@ export default function LandingPage() {
               <article
                 key={plan.name}
                 className={`rounded-[28px] border p-6 md:p-7 ${plan.highlighted
-                    ? "border-emerald-500/35 bg-gradient-to-b from-emerald-500/8 to-card/90 shadow-xl shadow-emerald-900/[0.04]"
-                    : "border-border/50 bg-card/65"
+                  ? "border-emerald-500/35 bg-gradient-to-b from-emerald-500/8 to-card/90 shadow-xl shadow-emerald-900/[0.04]"
+                  : "border-border/50 bg-card/65"
                   }`}
               >
                 <div className="flex items-start justify-between">
@@ -626,11 +626,11 @@ export default function LandingPage() {
                   )}
                 </div>
 
-                <p className="mt-3 text-[13px] text-muted-foreground">{plan.summary}</p>
+                <p className="mt-3 text-sm text-muted-foreground">{plan.summary}</p>
 
                 <ul className="mt-5 space-y-2.5">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-[13px] text-muted-foreground">
+                    <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
                       <span>{feature}</span>
                     </li>
@@ -640,8 +640,8 @@ export default function LandingPage() {
                 <Link href="/register" className="mt-6 block">
                   <Button
                     className={`w-full rounded-full ${plan.highlighted
-                        ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-900/10 hover:from-emerald-600 hover:to-teal-700"
-                        : ""
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-900/10 hover:from-emerald-600 hover:to-teal-700"
+                      : ""
                       }`}
                     variant={plan.highlighted ? "default" : "outline"}
                   >
@@ -653,7 +653,7 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <p className="mt-6 text-xs text-muted-foreground">
+          <p className="mt-6 text-sm text-muted-foreground">
             Pro includes 100 PDL enrichments monthly. Additional enrichment usage is billed at $0.30
             per lookup.
           </p>
@@ -681,7 +681,7 @@ export default function LandingPage() {
                     className="rounded-2xl border border-border/40 bg-background/65 p-4"
                   >
                     <h3 className="text-sm font-semibold">{item.q}</h3>
-                    <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{item.a}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
                   </article>
                 ))}
               </div>
