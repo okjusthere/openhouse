@@ -5,14 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { OptionButtonGroup } from "@/components/ui/option-button-group";
+import { BrandLockup } from "@/components/brand-lockup";
 import { Loader2, CheckCircle2, Home, MapPin, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -175,6 +170,9 @@ export default function PublicSignInPage({
                 <Badge variant="secondary" className="mb-3 text-xs">
                     Open House Sign-In
                 </Badge>
+                <div className="mb-3 inline-flex rounded-full border border-border/60 bg-background/70 px-3 py-1.5">
+                    <BrandLockup compact />
+                </div>
                 <h1 className="text-xl font-bold mb-1 flex items-center justify-center gap-2">
                     <MapPin className="h-5 w-5" style={{ color: primaryColor }} />
                     {event?.propertyAddress}
@@ -252,56 +250,56 @@ export default function PublicSignInPage({
                         <CardContent className="space-y-3">
                             <div className="space-y-2">
                                 <Label>Are you working with an agent?</Label>
-                                <Select value={hasAgent} onValueChange={setHasAgent}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="no">No</SelectItem>
-                                        <SelectItem value="yes">Yes</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <OptionButtonGroup
+                                    value={hasAgent}
+                                    onChange={setHasAgent}
+                                    accentColor={primaryColor}
+                                    options={[
+                                        { value: "no", label: "No" },
+                                        { value: "yes", label: "Yes" },
+                                    ]}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label>Are you pre-approved?</Label>
-                                <Select value={isPreApproved} onValueChange={setIsPreApproved}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="yes">Yes</SelectItem>
-                                        <SelectItem value="no">No</SelectItem>
-                                        <SelectItem value="not_yet">Not yet</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <OptionButtonGroup
+                                    value={isPreApproved}
+                                    onChange={setIsPreApproved}
+                                    accentColor={primaryColor}
+                                    options={[
+                                        { value: "yes", label: "Yes" },
+                                        { value: "no", label: "No" },
+                                        { value: "not_yet", label: "Not yet" },
+                                    ]}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label>How interested are you?</Label>
-                                <Select value={interestLevel} onValueChange={setInterestLevel}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="very">Very Interested</SelectItem>
-                                        <SelectItem value="somewhat">Somewhat Interested</SelectItem>
-                                        <SelectItem value="just_looking">Just Looking</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <OptionButtonGroup
+                                    value={interestLevel}
+                                    onChange={setInterestLevel}
+                                    accentColor={primaryColor}
+                                    options={[
+                                        { value: "very", label: "Very Interested" },
+                                        { value: "somewhat", label: "Somewhat Interested" },
+                                        { value: "just_looking", label: "Just Looking" },
+                                    ]}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label>Buying timeline?</Label>
-                                <Select value={buyingTimeline} onValueChange={setBuyingTimeline}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="0_3_months">0–3 months</SelectItem>
-                                        <SelectItem value="3_6_months">3–6 months</SelectItem>
-                                        <SelectItem value="6_12_months">6–12 months</SelectItem>
-                                        <SelectItem value="over_12_months">12+ months</SelectItem>
-                                        <SelectItem value="just_browsing">Just browsing</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <OptionButtonGroup
+                                    value={buyingTimeline}
+                                    onChange={setBuyingTimeline}
+                                    accentColor={primaryColor}
+                                    options={[
+                                        { value: "0_3_months", label: "0–3 months" },
+                                        { value: "3_6_months", label: "3–6 months" },
+                                        { value: "6_12_months", label: "6–12 months" },
+                                        { value: "over_12_months", label: "12+ months" },
+                                        { value: "just_browsing", label: "Just browsing" },
+                                    ]}
+                                />
                             </div>
                         </CardContent>
                     </Card>
@@ -317,23 +315,17 @@ export default function PublicSignInPage({
                                     <div key={i} className="space-y-2">
                                         <Label>{field.label}</Label>
                                         {field.type === "select" && field.options ? (
-                                            <Select
+                                            <OptionButtonGroup
                                                 value={customAnswers[field.label] || ""}
-                                                onValueChange={(v) =>
-                                                    setCustomAnswers((prev) => ({ ...prev, [field.label]: v }))
+                                                onChange={(nextValue) =>
+                                                    setCustomAnswers((prev) => ({ ...prev, [field.label]: nextValue }))
                                                 }
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {field.options.map((opt) => (
-                                                        <SelectItem key={opt} value={opt}>
-                                                            {opt}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                                accentColor={primaryColor}
+                                                options={field.options.map((opt) => ({
+                                                    value: opt,
+                                                    label: opt,
+                                                }))}
+                                            />
                                         ) : (
                                             <Input
                                                 value={customAnswers[field.label] || ""}

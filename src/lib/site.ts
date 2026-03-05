@@ -1,7 +1,9 @@
+import { brand } from "@/lib/brand";
+
 export const siteConfig = {
-  name: "OpenHouse",
-  legalName: "OpenHouse Pro",
-  title: "OpenHouse | AI-Native Open House Platform",
+  name: brand.name,
+  legalName: brand.legalName,
+  title: `${brand.name} | AI-Native Open House Platform`,
   description:
     "OpenHouse helps North American real estate teams run branded sign-ins, AI lead scoring, and seller-ready reporting from a single workflow.",
   xHandle: "@openhousehq",

@@ -33,6 +33,8 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
+import { BrandLockup } from "@/components/brand-lockup";
+import { BrandMark } from "@/components/brand-mark";
 
 type NavItem = {
     href: string;
@@ -155,7 +157,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const pageLabel = getPageLabel(pathname);
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+        <div className="brand-ambient relative min-h-screen overflow-hidden bg-background text-foreground">
             <div className="pointer-events-none absolute inset-0 -z-10">
                 <div className="absolute left-1/2 top-[-22rem] h-[40rem] w-[40rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]" />
                 <div className="absolute right-[-9rem] top-[16rem] h-[24rem] w-[24rem] rounded-full bg-cyan-400/10 blur-[100px]" />
@@ -165,14 +167,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="relative z-10 flex min-h-screen">
                 <aside className="hidden w-72 shrink-0 border-r border-border/60 bg-card/80 backdrop-blur-xl lg:flex lg:flex-col">
                     <div className="border-b border-border/60 px-5 py-5">
-                        <Link href="/dashboard" className="inline-flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
-                                OH
-                            </div>
-                            <div className="leading-tight">
-                                <p className="text-sm font-semibold tracking-wide">OpenHouse</p>
-                                <p className="text-[11px] text-muted-foreground">Control center</p>
-                            </div>
+                        <Link href="/dashboard" className="inline-flex items-center">
+                            <BrandLockup tagline="Control center" />
                         </Link>
                     </div>
 
@@ -244,9 +240,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     >
                                         <SheetHeader className="border-b border-border/60 px-5 py-5 text-left">
                                             <SheetTitle className="flex items-center gap-3 text-sm font-semibold">
-                                                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xs text-white">
-                                                    OH
-                                                </span>
+                                                <BrandMark className="size-8 rounded-lg" />
                                                 OpenHouse dashboard
                                             </SheetTitle>
                                             <SheetDescription>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/site";
+import { brand } from "@/lib/brand";
 
 const onest = Onest({
   subsets: ["latin"],
@@ -83,11 +84,11 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml", sizes: "any" },
       { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
     ],
     apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
-    shortcut: [{ url: "/favicon.ico" }],
+    shortcut: [{ url: "/favicon.svg" }],
   },
   other: {
     "geo.region": "US-ALL",
@@ -100,7 +101,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   colorScheme: "light",
-  themeColor: "#faf8f5",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: brand.colors.surface },
+    { media: "(prefers-color-scheme: dark)", color: "#101f2f" },
+  ],
 };
 
 export default function RootLayout({

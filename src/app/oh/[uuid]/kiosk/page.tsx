@@ -3,13 +3,8 @@
 import { useState, useEffect, useCallback, use } from "react";
 import { Loader2, CheckCircle2, Home, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { OptionButtonGroup } from "@/components/ui/option-button-group";
+import { BrandLockup } from "@/components/brand-lockup";
 import Image, { type ImageLoaderProps } from "next/image";
 
 /**
@@ -150,6 +145,9 @@ export default function KioskPage({
                                 className="mb-6 h-16 w-auto rounded-lg"
                             />
                         )}
+                        <div className="mb-4">
+                            <BrandLockup compact />
+                        </div>
                         <div
                             className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl text-5xl"
                             style={{ backgroundColor: `${color}18` }}
@@ -208,6 +206,9 @@ export default function KioskPage({
             <div className="mx-auto max-w-lg px-6 py-8">
                 {/* Header */}
                 <div className="mb-6 text-center">
+                    <div className="mb-3 inline-flex rounded-full border border-border/60 bg-background/70 px-3 py-1.5">
+                        <BrandLockup compact />
+                    </div>
                     <h1 className="mb-1 text-2xl font-bold">Sign In</h1>
                     <p className="text-sm text-muted-foreground">{event?.propertyAddress}</p>
                 </div>
@@ -251,43 +252,43 @@ export default function KioskPage({
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="mb-1.5 block text-sm text-foreground/90">Working with an agent?</label>
-                            <Select value={hasAgent} onValueChange={setHasAgent}>
-                                <SelectTrigger className="h-12 border-border/70 bg-white">
-                                    <SelectValue placeholder="Select..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="no">No</SelectItem>
-                                    <SelectItem value="yes">Yes</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <OptionButtonGroup
+                                value={hasAgent}
+                                onChange={setHasAgent}
+                                accentColor={color}
+                                options={[
+                                    { value: "no", label: "No" },
+                                    { value: "yes", label: "Yes" },
+                                ]}
+                            />
                         </div>
                         <div>
                             <label className="mb-1.5 block text-sm text-foreground/90">Pre-approved?</label>
-                            <Select value={isPreApproved} onValueChange={setIsPreApproved}>
-                                <SelectTrigger className="h-12 border-border/70 bg-white">
-                                    <SelectValue placeholder="Select..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="yes">Yes</SelectItem>
-                                    <SelectItem value="no">No</SelectItem>
-                                    <SelectItem value="not_yet">Not yet</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <OptionButtonGroup
+                                value={isPreApproved}
+                                onChange={setIsPreApproved}
+                                accentColor={color}
+                                options={[
+                                    { value: "yes", label: "Yes" },
+                                    { value: "no", label: "No" },
+                                    { value: "not_yet", label: "Not yet" },
+                                ]}
+                            />
                         </div>
                     </div>
 
                     <div>
                         <label className="mb-1.5 block text-sm text-foreground/90">Interest level</label>
-                        <Select value={interestLevel} onValueChange={setInterestLevel}>
-                            <SelectTrigger className="h-12 border-border/70 bg-white">
-                                <SelectValue placeholder="Select..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="very">Very Interested</SelectItem>
-                                <SelectItem value="somewhat">Somewhat Interested</SelectItem>
-                                <SelectItem value="just_looking">Just Looking</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <OptionButtonGroup
+                            value={interestLevel}
+                            onChange={setInterestLevel}
+                            accentColor={color}
+                            options={[
+                                { value: "very", label: "Very Interested" },
+                                { value: "somewhat", label: "Somewhat Interested" },
+                                { value: "just_looking", label: "Just Looking" },
+                            ]}
+                        />
                     </div>
 
                     {/* Custom Fields */}
@@ -295,19 +296,14 @@ export default function KioskPage({
                         <div key={i}>
                             <label className="mb-1.5 block text-sm text-foreground/90">{field.label}</label>
                             {field.type === "select" && field.options ? (
-                                <Select
+                                <OptionButtonGroup
                                     value={customAnswers[field.label] || ""}
-                                    onValueChange={(v) => setCustomAnswers((prev) => ({ ...prev, [field.label]: v }))}
-                                >
-                                    <SelectTrigger className="h-12 border-border/70 bg-white">
-                                        <SelectValue placeholder="Select..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {field.options.map((opt) => (
-                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    onChange={(nextValue) =>
+                                        setCustomAnswers((prev) => ({ ...prev, [field.label]: nextValue }))
+                                    }
+                                    accentColor={color}
+                                    options={field.options.map((opt) => ({ value: opt, label: opt }))}
+                                />
                             ) : (
                                 <Input
                                     className="h-12 border-border/70 bg-white"

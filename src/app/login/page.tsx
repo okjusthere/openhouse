@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { BrandLockup } from "@/components/brand-lockup";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -45,7 +46,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+        <div className="brand-ambient relative min-h-screen overflow-hidden bg-background text-foreground">
             <div className="pointer-events-none absolute inset-0 -z-10">
                 <div className="absolute left-1/2 top-[-18rem] h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-emerald-500/12 blur-[110px]" />
                 <div className="absolute right-[-10rem] top-[16rem] h-[24rem] w-[24rem] rounded-full bg-cyan-400/10 blur-[100px]" />
@@ -88,14 +89,8 @@ export default function LoginPage() {
 
                 <Card className="w-full border-border/60 bg-card/85 shadow-2xl shadow-emerald-900/5 backdrop-blur-xl lg:max-w-md lg:justify-self-end">
                     <CardHeader className="space-y-3 pb-3 text-center">
-                        <Link href="/" className="inline-flex items-center justify-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
-                                OH
-                            </div>
-                            <div className="text-left leading-tight">
-                                <p className="text-sm font-semibold">OpenHouse</p>
-                                <p className="text-[11px] text-muted-foreground">Agent growth platform</p>
-                            </div>
+                        <Link href="/" className="inline-flex items-center justify-center">
+                            <BrandLockup />
                         </Link>
 
                         <CardTitle
