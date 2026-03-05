@@ -1,19 +1,28 @@
 /**
  * Property Q&A Chatbot API
- * POST /api/public/event/[uuid]/chat — Chat with property AI (no auth for visitors)
+ * GET  /api/public/event/[uuid]/chat?sessionId=xxx — Load persisted messages
+ * POST /api/public/event/[uuid]/chat               — Chat with property AI
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { events, aiConversations, users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import {
+    events,
+    aiConversations,
+    users,
+    type Event,
+    type User,
+} from "@/lib/db/schema";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { chatWithProperty } from "@/lib/ai/property-qa";
 import { randomUUID } from "crypto";
 
-export async function POST(
-    request: NextRequest,
-    { params }: { params: Promise<{ uuid: string }> }
-) {
-    const { uuid } = await params;
+type EligibleContext =
+    | { ok: true; event: Event; owner: User }
+    | { ok: false; response: NextResponse };
+
+type ChatHistoryItem = { role: "user" | "assistant"; content: string };
+
+async function loadEligibleContext(uuid: string): Promise<EligibleContext> {
     const db = getDb();
 
     const [event] = await db
@@ -23,23 +32,91 @@ export async function POST(
         .limit(1);
 
     if (!event) {
-        return NextResponse.json({ error: "Event not found" }, { status: 404 });
+        return {
+            ok: false,
+            response: NextResponse.json({ error: "Event not found" }, { status: 404 }),
+        };
     }
 
     if (!event.aiQaEnabled) {
-        return NextResponse.json({ error: "AI Q&A not enabled for this event" }, { status: 403 });
+        return {
+            ok: false,
+            response: NextResponse.json(
+                { error: "AI Q&A not enabled for this event" },
+                { status: 403 }
+            ),
+        };
     }
 
-    // Check owner's AI quota
     const [owner] = await db
         .select()
         .from(users)
         .where(eq(users.id, event.userId))
         .limit(1);
 
-    if (!owner || owner.subscriptionTier === "free") {
-        return NextResponse.json({ error: "AI Q&A requires Pro plan" }, { status: 403 });
+    if (!owner || owner.subscriptionTier !== "pro") {
+        return {
+            ok: false,
+            response: NextResponse.json({ error: "AI Q&A requires Pro plan" }, { status: 403 }),
+        };
     }
+
+    return { ok: true, event, owner };
+}
+
+async function loadPersistedHistory(eventId: number, sessionId: string): Promise<ChatHistoryItem[]> {
+    const db = getDb();
+    const rows = await db
+        .select({
+            role: aiConversations.role,
+            content: aiConversations.content,
+        })
+        .from(aiConversations)
+        .where(
+            and(
+                eq(aiConversations.eventId, eventId),
+                eq(aiConversations.sessionId, sessionId)
+            )
+        )
+        .orderBy(asc(aiConversations.createdAt))
+        .limit(30);
+
+    return rows
+        .filter(
+            (item): item is { role: "user" | "assistant"; content: string } =>
+                item.role === "user" || item.role === "assistant"
+        )
+        .map((item) => ({ role: item.role, content: item.content }));
+}
+
+export async function GET(
+    request: NextRequest,
+    { params }: { params: Promise<{ uuid: string }> }
+) {
+    const { uuid } = await params;
+    const sessionId = request.nextUrl.searchParams.get("sessionId");
+
+    if (!sessionId) {
+        return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
+    }
+
+    const context = await loadEligibleContext(uuid);
+    if (!context.ok) return context.response;
+
+    const messages = await loadPersistedHistory(context.event.id, sessionId);
+
+    return NextResponse.json({ sessionId, messages });
+}
+
+export async function POST(
+    request: NextRequest,
+    { params }: { params: Promise<{ uuid: string }> }
+) {
+    const { uuid } = await params;
+    const db = getDb();
+    const context = await loadEligibleContext(uuid);
+    if (!context.ok) return context.response;
+    const { event, owner } = context;
 
     if (owner.aiQueriesLimit > 0 && owner.aiQueriesUsed >= owner.aiQueriesLimit) {
         return NextResponse.json({ error: "AI query limit reached" }, { status: 429 });
@@ -53,6 +130,28 @@ export async function POST(
     }
 
     const sessionId = existingSessionId || randomUUID();
+    const incomingHistory: ChatHistoryItem[] = Array.isArray(history)
+        ? history
+            .filter(
+                (
+                    item: unknown
+                ): item is { role: "user" | "assistant"; content: string } =>
+                    !!item &&
+                    typeof item === "object" &&
+                    ("role" in item) &&
+                    ("content" in item) &&
+                    (item.role === "user" || item.role === "assistant") &&
+                    typeof item.content === "string"
+            )
+            .map((item) => ({ role: item.role, content: item.content }))
+            .slice(-20)
+        : [];
+
+    const conversationHistory =
+        incomingHistory.length > 0
+            ? incomingHistory
+            : await loadPersistedHistory(event.id, sessionId);
+
     const aiQaContext = event.aiQaContext as {
         customFaq?: Array<{ question: string; answer: string }>;
         mlsData?: Record<string, unknown>;
@@ -75,7 +174,7 @@ export async function POST(
                 nearbyPoi: aiQaContext?.nearbyPoi,
             },
             message,
-            history || []
+            conversationHistory
         );
 
         // Save conversation
@@ -87,7 +186,7 @@ export async function POST(
         // Increment AI usage
         await db
             .update(users)
-            .set({ aiQueriesUsed: owner.aiQueriesUsed + 1 })
+            .set({ aiQueriesUsed: sql`${users.aiQueriesUsed} + 1` })
             .where(eq(users.id, owner.id));
 
         return NextResponse.json({

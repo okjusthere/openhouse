@@ -39,7 +39,7 @@ export default function DashboardLayout({
 }) {
     const pathname = usePathname();
     const { data: session } = useSession();
-    const isPro = session?.user?.subscriptionTier === "pro" || session?.user?.subscriptionTier === "enterprise";
+    const isPro = session?.user?.subscriptionTier === "pro";
 
     return (
         <div className="min-h-screen bg-background">
@@ -61,7 +61,7 @@ export default function DashboardLayout({
 
                     {/* New Event Button */}
                     <div className="px-4 py-4">
-                        <Link href="/dashboard/events/new">
+                        <Link href="/dashboard/events?new=1">
                             <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0">
                                 <Plus className="mr-2 h-4 w-4" />
                                 New Open House

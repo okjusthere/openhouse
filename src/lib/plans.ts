@@ -28,19 +28,6 @@ export const PLAN_LIMITS = {
         crmIntegration: "zapier_api" as const,
         pdlOverageRate: 0.30,      // $0.30 per extra PDL call
     },
-    enterprise: {
-        maxEventsPerMonth: Infinity,
-        maxSignInsPerMonth: Infinity,
-        pdlCredits: Infinity,
-        aiQueries: Infinity,
-        aiLeadScoring: true,
-        aiFollowUp: true,
-        aiPropertyQa: true,
-        csvExport: true,
-        sellerReport: "whitelabel" as const,
-        crmIntegration: "full_custom" as const,
-        pdlOverageRate: 0,
-    },
 } as const;
 
 export type PlanTier = keyof typeof PLAN_LIMITS;
@@ -49,14 +36,13 @@ export type PlanTier = keyof typeof PLAN_LIMITS;
  * Check if a user has access to a Pro feature.
  */
 export function isPro(tier: string): boolean {
-    return tier === "pro" || tier === "enterprise";
+    return tier === "pro";
 }
 
 /**
  * Check if user has remaining PDL credits.
  */
 export function hasPdlCredits(used: number, limit: number): boolean {
-    // Enterprise has Infinity limit
     return used < limit;
 }
 
@@ -68,7 +54,7 @@ export function getPdlOverageCost(
     limit: number,
     tier: PlanTier
 ): number {
-    if (tier === "enterprise" || tier === "free") return 0;
+    if (tier === "free") return 0;
     const overage = Math.max(0, used - limit);
     return overage * PLAN_LIMITS[tier].pdlOverageRate;
 }

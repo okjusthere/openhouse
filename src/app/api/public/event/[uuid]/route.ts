@@ -5,9 +5,10 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { events, signIns } from "@/lib/db/schema";
+import { events, signIns, users } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
+import { processSignInWithAi } from "@/lib/ai/process-signin";
 
 const signInSchema = z.object({
     fullName: z.string().min(1, "Name is required"),
@@ -84,6 +85,19 @@ export async function POST(
         );
     }
 
+    const [owner] = await db
+        .select({
+            id: users.id,
+            subscriptionTier: users.subscriptionTier,
+        })
+        .from(users)
+        .where(eq(users.id, event.userId))
+        .limit(1);
+
+    if (!owner) {
+        return NextResponse.json({ error: "Event owner not found" }, { status: 404 });
+    }
+
     try {
         const body = await request.json();
         const data = signInSchema.parse(body);
@@ -111,8 +125,27 @@ export async function POST(
             .set({ totalSignIns: sql`${events.totalSignIns} + 1` })
             .where(eq(events.id, event.id));
 
+        // AI-native flow: automatically process scoring/enrichment for Pro owners.
+        if (owner.subscriptionTier === "pro") {
+            try {
+                await processSignInWithAi({
+                    eventId: event.id,
+                    signInId: Number(result.insertId),
+                    userId: owner.id,
+                    subscriptionTier: owner.subscriptionTier,
+                });
+            } catch (processingError) {
+                // Sign-in itself should still succeed even if AI processing fails.
+                console.error("[SignIn] Auto AI processing failed:", processingError);
+            }
+        }
+
         return NextResponse.json(
-            { signInId: result.insertId, success: true },
+            {
+                signInId: result.insertId,
+                success: true,
+                aiProcessed: owner.subscriptionTier === "pro",
+            },
             { status: 201 }
         );
     } catch (error) {

@@ -13,8 +13,9 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, Home, MapPin } from "lucide-react";
+import { Loader2, CheckCircle2, Home, MapPin, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface EventInfo {
     uuid: string;
@@ -184,6 +185,18 @@ export default function PublicSignInPage({
                     {event?.bathrooms && <span>{event.bathrooms} bath</span>}
                     {event?.sqft && <span>{event.sqft.toLocaleString()} sqft</span>}
                 </div>
+                {event?.aiQaEnabled && (
+                    <Link href={`/oh/${uuid}/chat`} className="inline-block mt-4">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                        >
+                            <MessageSquareText className="mr-2 h-4 w-4" />
+                            Ask AI About This Home
+                        </Button>
+                    </Link>
+                )}
             </div>
 
             {/* Form */}

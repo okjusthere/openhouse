@@ -102,23 +102,6 @@ const PRICING = [
     cta: "Start Pro Trial",
     highlight: true,
   },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    desc: "For teams and brokerages",
-    features: [
-      "Everything in Pro",
-      "Unlimited PDL Enrichments",
-      "Unlimited AI Queries",
-      "White-label Branding",
-      "Team Management",
-      "Custom CRM Integration",
-      "Dedicated Support",
-    ],
-    cta: "Contact Sales",
-    highlight: false,
-  },
 ];
 
 export default function LandingPage() {
@@ -330,7 +313,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
+          <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
             {PRICING.map((plan) => (
               <Card
                 key={plan.name}

@@ -10,7 +10,7 @@ import { Sparkles, Star, Check, CreditCard } from "lucide-react";
 export default function SettingsPage() {
     const { data: session } = useSession();
     const tier = session?.user?.subscriptionTier || "free";
-    const isPro = tier === "pro" || tier === "enterprise";
+    const isPro = tier === "pro";
 
     return (
         <div className="space-y-6 max-w-2xl">
@@ -46,7 +46,7 @@ export default function SettingsPage() {
                             ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30"
                             : "bg-gray-500/10 text-gray-400 border-gray-500/30"
                         }>
-                            {tier === "pro" ? "Pro" : tier === "enterprise" ? "Enterprise" : "Free"}
+                            {tier === "pro" ? "Pro" : "Free"}
                         </Badge>
                     </div>
                 </CardHeader>
@@ -55,7 +55,7 @@ export default function SettingsPage() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 text-sm">
                                 <Star className="h-4 w-4 text-amber-400" />
-                                <span>You&apos;re on the {tier === "enterprise" ? "Enterprise" : "Pro"} plan</span>
+                                <span>You&apos;re on the Pro plan</span>
                             </div>
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 <div className="flex items-center gap-2 text-muted-foreground">

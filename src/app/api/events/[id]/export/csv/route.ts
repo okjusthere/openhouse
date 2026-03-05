@@ -46,22 +46,36 @@ export async function GET(
     const headers = [
         "Name", "Phone", "Email", "Has Agent", "Pre-Approved",
         "Interest Level", "Buying Timeline", "Price Range",
-        "Lead Score", "Lead Tier", "Signed In At",
+        "Lead Score", "Lead Tier", "AI Recommendation",
+        "PDL Enriched", "PDL Job Title", "PDL Company", "PDL Industry",
+        "PDL Salary", "PDL LinkedIn", "PDL Location",
+        "Signed In At",
     ];
 
-    const rows = eventSignIns.map((s) => [
-        s.fullName,
-        s.phone || "",
-        s.email || "",
-        s.hasAgent ? "Yes" : "No",
-        s.isPreApproved || "",
-        s.interestLevel || "",
-        s.buyingTimeline || "",
-        s.priceRange || "",
-        (s.leadScore as Record<string, unknown>)?.overallScore ?? "",
-        s.leadTier || "",
-        s.signedInAt?.toISOString() || "",
-    ]);
+    const rows = eventSignIns.map((s) => {
+        const pdlData = (s.pdlData as Record<string, unknown> | null) || {};
+        return [
+            s.fullName,
+            s.phone || "",
+            s.email || "",
+            s.hasAgent ? "Yes" : "No",
+            s.isPreApproved || "",
+            s.interestLevel || "",
+            s.buyingTimeline || "",
+            s.priceRange || "",
+            (s.leadScore as Record<string, unknown> | null)?.overallScore ?? "",
+            s.leadTier || "",
+            s.aiRecommendation || "",
+            s.pdlEnriched ? "Yes" : "No",
+            String(pdlData.job_title || ""),
+            String(pdlData.job_company_name || ""),
+            String(pdlData.job_company_industry || ""),
+            String(pdlData.inferred_salary || ""),
+            String(pdlData.linkedin_url || ""),
+            String(pdlData.location_name || ""),
+            s.signedInAt?.toISOString() || "",
+        ];
+    });
 
     const csv = [
         headers.join(","),

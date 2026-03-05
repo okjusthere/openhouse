@@ -15,7 +15,6 @@ import {
     decimal,
     json,
     index,
-    uniqueIndex,
     tinyint,
     smallint,
 } from "drizzle-orm/mysql-core";
@@ -46,7 +45,6 @@ export const users = mysqlTable("oh_users", {
     subscriptionTier: mysqlEnum("subscriptionTier", [
         "free",
         "pro",
-        "enterprise",
     ])
         .default("free")
         .notNull(),
