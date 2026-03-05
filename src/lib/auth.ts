@@ -109,7 +109,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
         async session({ session, token }) {
             if (token) {
-                session.user.id = token.userId as string;
+                session.user.id =
+                    token.userId !== undefined ? String(token.userId) : "";
                 session.user.subscriptionTier = token.subscriptionTier as string;
             }
             return session;
