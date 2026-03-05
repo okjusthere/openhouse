@@ -109,7 +109,7 @@ export default function PublicSignInPage({
     if (phase === "loading") {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
             </div>
         );
     }
@@ -197,7 +197,7 @@ export default function PublicSignInPage({
                         <Button
                             size="sm"
                             variant="outline"
-                            className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                            className="border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10"
                         >
                             <MessageSquareText className="mr-2 h-4 w-4" />
                             Ask AI About This Home

@@ -8,6 +8,7 @@
         "AUTH_SECRET": "@openhouse-auth-secret",
         "AUTH_GOOGLE_ID": "@openhouse-google-id",
         "AUTH_GOOGLE_SECRET": "@openhouse-google-secret",
+        "NEXT_PUBLIC_SITE_URL": "https://openhouse.kevv.ai",
         "AZURE_OPENAI_ENDPOINT": "@openhouse-azure-endpoint",
         "AZURE_OPENAI_API_KEY": "@openhouse-azure-key",
         "AZURE_OPENAI_DEPLOYMENT": "@openhouse-azure-deployment",

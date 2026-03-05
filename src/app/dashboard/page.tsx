@@ -21,28 +21,28 @@ const METRICS = [
         value: "0",
         note: "Create your first open house to initialize the pipeline",
         icon: CalendarDays,
-        iconWrap: "bg-cyan-500/10 text-cyan-300",
+        iconWrap: "bg-cyan-500/10 text-cyan-700",
     },
     {
         title: "Total sign-ins",
         value: "0",
         note: "Visitors captured by QR and kiosk check-in",
         icon: Users,
-        iconWrap: "bg-emerald-500/10 text-emerald-300",
+        iconWrap: "bg-emerald-500/10 text-emerald-700",
     },
     {
         title: "Hot leads",
         value: "0",
         note: "High-intent buyers from AI scoring",
         icon: Flame,
-        iconWrap: "bg-orange-500/10 text-orange-300",
+        iconWrap: "bg-orange-500/10 text-orange-600",
     },
     {
         title: "Conversion rate",
         value: "—",
         note: "Lead-to-showing conversion benchmark",
         icon: TrendingUp,
-        iconWrap: "bg-indigo-500/10 text-indigo-300",
+        iconWrap: "bg-indigo-500/10 text-indigo-700",
     },
 ];
 
@@ -58,13 +58,13 @@ const PIPELINE_BANDS = [
         tier: "HOT",
         guidance: "Same-hour callback with appointment CTA",
         score: "Score 70+",
-        className: "border-orange-500/30 bg-orange-500/10 text-orange-200",
+        className: "border-orange-500/30 bg-orange-500/10 text-orange-700",
     },
     {
         tier: "WARM",
         guidance: "24-hour follow-up with listing context",
         score: "Score 40-69",
-        className: "border-cyan-500/30 bg-cyan-500/10 text-cyan-200",
+        className: "border-cyan-500/30 bg-cyan-500/10 text-cyan-700",
     },
     {
         tier: "COLD",
@@ -77,12 +77,12 @@ const PIPELINE_BANDS = [
 export default function DashboardPage() {
     return (
         <div className="space-y-7">
-            <Card className="overflow-hidden border-border/60 bg-card/65 shadow-xl shadow-emerald-900/10">
+            <Card className="overflow-hidden border-border/60 bg-card/80 shadow-xl shadow-emerald-900/5">
                 <CardContent className="relative p-6 md:p-7">
                     <div className="pointer-events-none absolute right-[-4rem] top-[-5rem] h-52 w-52 rounded-full bg-emerald-500/14 blur-3xl" />
                     <div className="pointer-events-none absolute bottom-[-5rem] left-[36%] h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl" />
 
-                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">
                         Daily operations
                     </Badge>
                     <h1
@@ -136,7 +136,7 @@ export default function DashboardPage() {
                 <Card className="border-border/60 bg-card/60">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
-                            <BadgeCheck className="h-5 w-5 text-emerald-300" />
+                            <BadgeCheck className="h-5 w-5 text-emerald-700" />
                             90-minute launch checklist
                         </CardTitle>
                         <p className="text-sm text-muted-foreground">
@@ -149,13 +149,13 @@ export default function DashboardPage() {
                                 key={step}
                                 className="flex items-start gap-3 rounded-2xl border border-border/55 bg-background/60 px-4 py-3"
                             >
-                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
                                 <p className="text-sm text-muted-foreground">{step}</p>
                             </div>
                         ))}
 
                         <Link href="/dashboard/events" className="inline-flex">
-                            <Button variant="ghost" className="px-0 text-emerald-300 hover:text-emerald-200">
+                            <Button variant="ghost" className="px-0 text-emerald-700 hover:text-emerald-800">
                                 Open event manager
                                 <ArrowRight className="ml-1.5 h-4 w-4" />
                             </Button>
@@ -195,7 +195,7 @@ export default function DashboardPage() {
                                 and next-step recommendations. Keep AI drafts human-reviewed before sending.
                             </p>
                             <Link href="/dashboard/analytics" className="mt-3 inline-flex">
-                                <Button variant="outline" size="sm" className="border-emerald-500/35 text-emerald-300">
+                                <Button variant="outline" size="sm" className="border-emerald-500/35 text-emerald-700">
                                     View analytics
                                     <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                                 </Button>

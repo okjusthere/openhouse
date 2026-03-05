@@ -97,7 +97,7 @@ export default function RegisterPage() {
 
             <div className="mx-auto grid min-h-screen w-full max-w-7xl items-center gap-8 px-5 py-8 md:px-8 lg:grid-cols-[1.02fr_0.98fr]">
                 <section className="hidden lg:block">
-                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">
                         Brokerage onboarding
                     </Badge>
                     <h1
@@ -117,19 +117,19 @@ export default function RegisterPage() {
                                 key={item.label}
                                 className="flex items-center gap-2 rounded-2xl border border-border/60 bg-card/45 px-4 py-3 text-sm text-muted-foreground"
                             >
-                                <item.icon className="h-4 w-4 text-emerald-300" />
+                                <item.icon className="h-4 w-4 text-emerald-700" />
                                 <span>{item.label}</span>
                             </div>
                         ))}
                     </div>
 
                     <p className="mt-8 inline-flex items-center gap-2 rounded-full border border-border/50 bg-card/45 px-3 py-1.5 text-xs text-muted-foreground">
-                        <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
+                        <Sparkles className="h-3.5 w-3.5 text-emerald-700" />
                         Free tier for launch. Pro tier for AI-first qualification at scale.
                     </p>
                 </section>
 
-                <Card className="w-full border-border/60 bg-card/65 shadow-2xl shadow-emerald-900/10 backdrop-blur-xl lg:max-w-lg lg:justify-self-end">
+                <Card className="w-full border-border/60 bg-card/85 shadow-2xl shadow-emerald-900/5 backdrop-blur-xl lg:max-w-lg lg:justify-self-end">
                     <CardHeader className="space-y-3 pb-2 text-center">
                         <Link href="/" className="inline-flex items-center justify-center gap-3">
                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
@@ -269,7 +269,7 @@ export default function RegisterPage() {
 
                         <p className="text-center text-sm text-muted-foreground">
                             Already have an account?{" "}
-                            <Link href="/login" className="text-emerald-300 hover:text-emerald-200 hover:underline">
+                            <Link href="/login" className="text-emerald-700 hover:text-emerald-800 hover:underline">
                                 Sign in
                             </Link>
                         </p>

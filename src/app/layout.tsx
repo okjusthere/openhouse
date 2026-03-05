@@ -1,36 +1,93 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
+import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/site";
+
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
-  title: "OpenHouse Pro — AI-Powered Open House Platform for Real Estate Agents",
-  description:
-    "The smartest Open House sign-in tool for real estate agents. AI lead scoring, People Data Lab enrichment, property Q&A chatbot, and automated follow-ups. Free to start.",
-  keywords: [
-    "open house",
-    "real estate",
-    "sign-in app",
-    "lead scoring",
-    "AI",
-    "real estate agent",
-    "CRM",
-    "open house app",
-  ],
-  authors: [{ name: "OpenHouse Pro" }],
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  applicationName: siteConfig.legalName,
+  referrer: "origin-when-cross-origin",
+  keywords: siteConfig.keywords,
+  category: "Real Estate Technology",
+  authors: [{ name: siteConfig.legalName, url: absoluteUrl("/") }],
+  creator: siteConfig.legalName,
+  publisher: siteConfig.legalName,
+  alternates: {
+    canonical: absoluteUrl("/"),
+    languages: {
+      "en-US": absoluteUrl("/"),
+      "en-CA": absoluteUrl("/"),
+    },
+  },
+  formatDetection: {
+    telephone: false,
+    address: false,
+    email: false,
+  },
   openGraph: {
-    title: "OpenHouse Pro — AI-Powered Open House Platform",
-    description:
-      "Stop using paper sign-in sheets. Capture leads, score them with AI, and close more deals.",
     type: "website",
     locale: "en_US",
+    url: absoluteUrl("/"),
+    siteName: siteConfig.legalName,
+    title: siteConfig.title,
+    description: siteConfig.description,
+    images: [
+      {
+        url: absoluteUrl("/opengraph-image"),
+        width: 1200,
+        height: 630,
+        alt: `${siteConfig.legalName} Open Graph image`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "OpenHouse Pro — AI-Powered Open House Platform",
-    description:
-      "Stop using paper sign-in sheets. Capture leads, score them with AI, and close more deals.",
+    title: siteConfig.title,
+    description: siteConfig.description,
+    creator: siteConfig.xHandle,
+    site: siteConfig.xHandle,
+    images: [absoluteUrl("/twitter-image")],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
+    ],
+    apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
+    shortcut: [{ url: "/favicon.ico" }],
+  },
+  other: {
+    "geo.region": "US-ALL",
+    "geo.placename": "United States and Canada",
+    ICBM: "37.0902, -95.7129",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light",
+  themeColor: "#eaf7f2",
 };
 
 export default function RootLayout({
@@ -39,15 +96,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#10b981" />
-      </head>
+    <html lang="en" className="scroll-smooth">
       <body className="font-sans antialiased">
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>

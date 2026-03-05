@@ -112,7 +112,7 @@ export default function KioskPage({
 
     if (phase === "loading") {
         return (
-            <div className="fixed inset-0 bg-black flex items-center justify-center">
+            <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-cyan-50">
                 <Loader2 className="h-10 w-10 animate-spin" style={{ color }} />
             </div>
         );
@@ -120,11 +120,11 @@ export default function KioskPage({
 
     if (phase === "error") {
         return (
-            <div className="fixed inset-0 bg-black flex items-center justify-center text-center px-8">
+            <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-cyan-50 px-8 text-center">
                 <div>
-                    <Home className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-white mb-2">Event Not Found</h1>
-                    <p className="text-gray-400">This Open House event doesn&apos;t exist.</p>
+                    <Home className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+                    <h1 className="mb-2 text-2xl font-bold">Event Not Found</h1>
+                    <p className="text-muted-foreground">This Open House event doesn&apos;t exist.</p>
                 </div>
             </div>
         );
@@ -134,45 +134,48 @@ export default function KioskPage({
     if (phase === "welcome") {
         return (
             <div
-                className="fixed inset-0 flex flex-col items-center justify-center text-center px-8 cursor-pointer"
-                style={{ background: `linear-gradient(135deg, ${color}15, black 60%)` }}
+                className="fixed inset-0 cursor-pointer bg-gradient-to-br from-emerald-50 via-white to-cyan-50 px-8 text-center"
                 onClick={() => setPhase("form")}
             >
-                {event?.branding?.logoUrl && (
-                    <Image
-                        loader={passthroughLoader}
-                        unoptimized
-                        src={event.branding.logoUrl}
-                        alt="Logo"
-                        width={240}
-                        height={64}
-                        className="h-16 w-auto mb-6 rounded-lg"
-                    />
-                )}
-                <div
-                    className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl text-5xl"
-                    style={{ backgroundColor: `${color}20` }}
-                >
-                    🏠
-                </div>
-                <h1 className="text-4xl font-bold text-white mb-3">Welcome!</h1>
-                <p className="text-xl text-gray-300 mb-2 flex items-center gap-2">
-                    <MapPin className="h-5 w-5" style={{ color }} />
-                    {event?.propertyAddress}
-                </p>
-                {event?.listPrice && (
-                    <p className="text-2xl font-bold mb-4" style={{ color }}>
-                        ${Number(event.listPrice).toLocaleString()}
-                    </p>
-                )}
-                {event?.branding?.tagline && (
-                    <p className="text-gray-400 mb-8">{event.branding.tagline}</p>
-                )}
-                <div
-                    className="px-10 py-4 rounded-2xl text-xl font-semibold text-white animate-pulse"
-                    style={{ backgroundColor: color }}
-                >
-                    Tap to Sign In
+                <div className="mx-auto flex h-full w-full max-w-4xl items-center justify-center">
+                    <div className="w-full rounded-[2rem] border border-border/60 bg-white/92 px-10 py-12 shadow-2xl shadow-emerald-900/5 backdrop-blur">
+                        {event?.branding?.logoUrl && (
+                            <Image
+                                loader={passthroughLoader}
+                                unoptimized
+                                src={event.branding.logoUrl}
+                                alt="Logo"
+                                width={240}
+                                height={64}
+                                className="mb-6 h-16 w-auto rounded-lg"
+                            />
+                        )}
+                        <div
+                            className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl text-5xl"
+                            style={{ backgroundColor: `${color}18` }}
+                        >
+                            🏠
+                        </div>
+                        <h1 className="mb-3 text-4xl font-bold">Welcome!</h1>
+                        <p className="mb-2 inline-flex items-center gap-2 text-xl">
+                            <MapPin className="h-5 w-5" style={{ color }} />
+                            {event?.propertyAddress}
+                        </p>
+                        {event?.listPrice && (
+                            <p className="mb-4 text-2xl font-bold" style={{ color }}>
+                                ${Number(event.listPrice).toLocaleString()}
+                            </p>
+                        )}
+                        {event?.branding?.tagline && (
+                            <p className="mb-8 text-muted-foreground">{event.branding.tagline}</p>
+                        )}
+                        <div
+                            className="mx-auto inline-flex rounded-2xl px-10 py-4 text-xl font-semibold text-white animate-pulse"
+                            style={{ backgroundColor: color }}
+                        >
+                            Tap to Sign In
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -181,35 +184,42 @@ export default function KioskPage({
     // THANK YOU SCREEN
     if (phase === "thanks") {
         return (
-            <div className="fixed inset-0 bg-black flex flex-col items-center justify-center text-center px-8">
-                <div
-                    className="mb-6 flex h-20 w-20 items-center justify-center rounded-full"
-                    style={{ backgroundColor: `${color}20` }}
-                >
-                    <CheckCircle2 className="h-10 w-10" style={{ color }} />
+            <div className="fixed inset-0 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 px-8 text-center">
+                <div className="mx-auto flex h-full w-full max-w-3xl items-center justify-center">
+                    <div className="w-full rounded-[2rem] border border-border/60 bg-white/92 px-10 py-12 shadow-2xl shadow-emerald-900/5 backdrop-blur">
+                        <div
+                            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full"
+                            style={{ backgroundColor: `${color}18` }}
+                        >
+                            <CheckCircle2 className="h-10 w-10" style={{ color }} />
+                        </div>
+                        <h1 className="mb-3 text-4xl font-bold">Thank You!</h1>
+                        <p className="text-xl text-muted-foreground">Enjoy the Open House</p>
+                        <p className="mt-4 text-sm text-muted-foreground">Next visitor in a moment...</p>
+                    </div>
                 </div>
-                <h1 className="text-4xl font-bold text-white mb-3">Thank You!</h1>
-                <p className="text-xl text-gray-300">Enjoy the Open House</p>
-                <p className="text-sm text-gray-500 mt-4">Next visitor in a moment...</p>
             </div>
         );
     }
 
     // FORM SCREEN
     return (
-        <div className="fixed inset-0 bg-black overflow-auto">
-            <div className="max-w-lg mx-auto px-6 py-8">
+        <div className="fixed inset-0 overflow-auto bg-gradient-to-br from-emerald-50 via-white to-cyan-50">
+            <div className="mx-auto max-w-lg px-6 py-8">
                 {/* Header */}
-                <div className="text-center mb-6">
-                    <h1 className="text-2xl font-bold text-white mb-1">Sign In</h1>
-                    <p className="text-gray-400 text-sm">{event?.propertyAddress}</p>
+                <div className="mb-6 text-center">
+                    <h1 className="mb-1 text-2xl font-bold">Sign In</h1>
+                    <p className="text-sm text-muted-foreground">{event?.propertyAddress}</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form
+                    onSubmit={handleSubmit}
+                    className="space-y-4 rounded-[1.75rem] border border-border/60 bg-white/92 p-6 shadow-2xl shadow-emerald-900/5 backdrop-blur"
+                >
                     <div>
-                        <label className="text-sm text-gray-300 mb-1.5 block">Full Name *</label>
+                        <label className="mb-1.5 block text-sm text-foreground/90">Full Name *</label>
                         <Input
-                            className="h-14 text-lg bg-gray-900 border-gray-700 text-white"
+                            className="h-14 border-border/70 bg-white text-lg"
                             placeholder="Your full name"
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
@@ -218,9 +228,9 @@ export default function KioskPage({
                         />
                     </div>
                     <div>
-                        <label className="text-sm text-gray-300 mb-1.5 block">Phone</label>
+                        <label className="mb-1.5 block text-sm text-foreground/90">Phone</label>
                         <Input
-                            className="h-14 text-lg bg-gray-900 border-gray-700 text-white"
+                            className="h-14 border-border/70 bg-white text-lg"
                             type="tel"
                             placeholder="(555) 123-4567"
                             value={phone}
@@ -228,9 +238,9 @@ export default function KioskPage({
                         />
                     </div>
                     <div>
-                        <label className="text-sm text-gray-300 mb-1.5 block">Email</label>
+                        <label className="mb-1.5 block text-sm text-foreground/90">Email</label>
                         <Input
-                            className="h-14 text-lg bg-gray-900 border-gray-700 text-white"
+                            className="h-14 border-border/70 bg-white text-lg"
                             type="email"
                             placeholder="your@email.com"
                             value={email}
@@ -240,9 +250,9 @@ export default function KioskPage({
 
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="text-sm text-gray-300 mb-1.5 block">Working with an agent?</label>
+                            <label className="mb-1.5 block text-sm text-foreground/90">Working with an agent?</label>
                             <Select value={hasAgent} onValueChange={setHasAgent}>
-                                <SelectTrigger className="h-12 bg-gray-900 border-gray-700 text-white">
+                                <SelectTrigger className="h-12 border-border/70 bg-white">
                                     <SelectValue placeholder="Select..." />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -252,9 +262,9 @@ export default function KioskPage({
                             </Select>
                         </div>
                         <div>
-                            <label className="text-sm text-gray-300 mb-1.5 block">Pre-approved?</label>
+                            <label className="mb-1.5 block text-sm text-foreground/90">Pre-approved?</label>
                             <Select value={isPreApproved} onValueChange={setIsPreApproved}>
-                                <SelectTrigger className="h-12 bg-gray-900 border-gray-700 text-white">
+                                <SelectTrigger className="h-12 border-border/70 bg-white">
                                     <SelectValue placeholder="Select..." />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -267,9 +277,9 @@ export default function KioskPage({
                     </div>
 
                     <div>
-                        <label className="text-sm text-gray-300 mb-1.5 block">Interest level</label>
+                        <label className="mb-1.5 block text-sm text-foreground/90">Interest level</label>
                         <Select value={interestLevel} onValueChange={setInterestLevel}>
-                            <SelectTrigger className="h-12 bg-gray-900 border-gray-700 text-white">
+                            <SelectTrigger className="h-12 border-border/70 bg-white">
                                 <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -283,13 +293,13 @@ export default function KioskPage({
                     {/* Custom Fields */}
                     {event?.customFields?.map((field, i) => (
                         <div key={i}>
-                            <label className="text-sm text-gray-300 mb-1.5 block">{field.label}</label>
+                            <label className="mb-1.5 block text-sm text-foreground/90">{field.label}</label>
                             {field.type === "select" && field.options ? (
                                 <Select
                                     value={customAnswers[field.label] || ""}
                                     onValueChange={(v) => setCustomAnswers((prev) => ({ ...prev, [field.label]: v }))}
                                 >
-                                    <SelectTrigger className="h-12 bg-gray-900 border-gray-700 text-white">
+                                    <SelectTrigger className="h-12 border-border/70 bg-white">
                                         <SelectValue placeholder="Select..." />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -300,7 +310,7 @@ export default function KioskPage({
                                 </Select>
                             ) : (
                                 <Input
-                                    className="h-12 bg-gray-900 border-gray-700 text-white"
+                                    className="h-12 border-border/70 bg-white"
                                     value={customAnswers[field.label] || ""}
                                     onChange={(e) => setCustomAnswers((prev) => ({ ...prev, [field.label]: e.target.value }))}
                                 />
@@ -309,7 +319,7 @@ export default function KioskPage({
                     ))}
 
                     {event?.complianceText && (
-                        <p className="text-xs text-gray-500 text-center">{event.complianceText}</p>
+                        <p className="text-center text-xs text-muted-foreground">{event.complianceText}</p>
                     )}
 
                     <button
@@ -331,7 +341,7 @@ export default function KioskPage({
                             resetForm();
                             setPhase("welcome");
                         }}
-                        className="w-full py-2 text-sm text-gray-500 hover:text-gray-300"
+                        className="w-full py-2 text-sm text-muted-foreground hover:text-foreground"
                     >
                         Cancel
                     </button>

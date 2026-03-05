@@ -54,7 +54,7 @@ export default function LoginPage() {
 
             <div className="mx-auto grid min-h-screen w-full max-w-7xl items-center gap-8 px-5 py-8 md:px-8 lg:grid-cols-[1.05fr_0.95fr]">
                 <section className="hidden lg:block">
-                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">
                         OpenHouse Control Center
                     </Badge>
                     <h1
@@ -79,14 +79,14 @@ export default function LoginPage() {
                                 key={item.label}
                                 className="flex items-center gap-2 rounded-2xl border border-border/60 bg-card/45 px-4 py-3 text-sm text-muted-foreground"
                             >
-                                <item.icon className="h-4 w-4 text-emerald-300" />
+                                <item.icon className="h-4 w-4 text-emerald-700" />
                                 <span>{item.label}</span>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                <Card className="w-full border-border/60 bg-card/65 shadow-2xl shadow-emerald-900/10 backdrop-blur-xl lg:max-w-md lg:justify-self-end">
+                <Card className="w-full border-border/60 bg-card/85 shadow-2xl shadow-emerald-900/5 backdrop-blur-xl lg:max-w-md lg:justify-self-end">
                     <CardHeader className="space-y-3 pb-3 text-center">
                         <Link href="/" className="inline-flex items-center justify-center gap-3">
                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
@@ -178,7 +178,7 @@ export default function LoginPage() {
 
                         <p className="text-center text-sm text-muted-foreground">
                             Don&apos;t have an account?{" "}
-                            <Link href="/register" className="text-emerald-300 hover:text-emerald-200 hover:underline">
+                            <Link href="/register" className="text-emerald-700 hover:text-emerald-800 hover:underline">
                                 Create one
                             </Link>
                         </p>
