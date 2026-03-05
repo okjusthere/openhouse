@@ -1,0 +1,36 @@
+{
+    "$schema": "https://vercel.com/docs/schema/vercel.json",
+    "framework": "nextjs",
+    "buildCommand": "npm run build",
+    "installCommand": "npm ci",
+    "env": {
+        "DATABASE_URL": "@openhouse-database-url",
+        "AUTH_SECRET": "@openhouse-auth-secret",
+        "AUTH_GOOGLE_ID": "@openhouse-google-id",
+        "AUTH_GOOGLE_SECRET": "@openhouse-google-secret",
+        "AZURE_OPENAI_ENDPOINT": "@openhouse-azure-endpoint",
+        "AZURE_OPENAI_API_KEY": "@openhouse-azure-key",
+        "AZURE_OPENAI_DEPLOYMENT": "@openhouse-azure-deployment",
+        "PDL_API_KEY": "@openhouse-pdl-key",
+        "STRIPE_SECRET_KEY": "@openhouse-stripe-secret",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@openhouse-stripe-pub",
+        "STRIPE_WEBHOOK_SECRET": "@openhouse-stripe-webhook"
+    },
+    "headers": [
+        {
+            "source": "/oh/(.*)",
+            "headers": [
+                {
+                    "key": "X-Frame-Options",
+                    "value": "SAMEORIGIN"
+                }
+            ]
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/v1/:path*",
+            "destination": "/api/:path*"
+        }
+    ]
+}

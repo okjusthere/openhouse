@@ -1,0 +1,139 @@
+/**
+ * Single Event API Routes
+ * GET    /api/events/[id]  — Get event details
+ * PUT    /api/events/[id]  — Update event
+ * DELETE /api/events/[id]  — Delete event
+ */
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { getDb } from "@/lib/db";
+import { events, signIns } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+
+export async function GET(
+    _request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const db = getDb();
+    const [event] = await db
+        .select()
+        .from(events)
+        .where(
+            and(
+                eq(events.id, Number(id)),
+                eq(events.userId, Number(session.user.id))
+            )
+        )
+        .limit(1);
+
+    if (!event) {
+        return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    // Also fetch sign-ins for the event
+    const eventSignIns = await db
+        .select()
+        .from(signIns)
+        .where(eq(signIns.eventId, event.id));
+
+    return NextResponse.json({ ...event, signIns: eventSignIns });
+}
+
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const db = getDb();
+
+    // Verify ownership
+    const [existing] = await db
+        .select()
+        .from(events)
+        .where(
+            and(
+                eq(events.id, Number(id)),
+                eq(events.userId, Number(session.user.id))
+            )
+        )
+        .limit(1);
+
+    if (!existing) {
+        return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    const body = await request.json();
+
+    // Build update object — only update provided fields
+    const updateData: Record<string, unknown> = {};
+    const allowedFields = [
+        "propertyAddress", "startTime", "endTime", "mlsNumber", "listPrice",
+        "propertyType", "bedrooms", "bathrooms", "sqft", "yearBuilt",
+        "propertyDescription", "customFields", "branding", "complianceText",
+        "status", "aiQaEnabled", "aiQaContext", "propertyPhotos",
+    ];
+
+    for (const field of allowedFields) {
+        if (body[field] !== undefined) {
+            if (field === "startTime" || field === "endTime") {
+                updateData[field] = new Date(body[field]);
+            } else {
+                updateData[field] = body[field];
+            }
+        }
+    }
+
+    if (Object.keys(updateData).length > 0) {
+        await db
+            .update(events)
+            .set(updateData)
+            .where(eq(events.id, Number(id)));
+    }
+
+    return NextResponse.json({ success: true });
+}
+
+export async function DELETE(
+    _request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const db = getDb();
+
+    const [existing] = await db
+        .select()
+        .from(events)
+        .where(
+            and(
+                eq(events.id, Number(id)),
+                eq(events.userId, Number(session.user.id))
+            )
+        )
+        .limit(1);
+
+    if (!existing) {
+        return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    // Delete sign-ins first, then event
+    await db.delete(signIns).where(eq(signIns.eventId, Number(id)));
+    await db.delete(events).where(eq(events.id, Number(id)));
+
+    return NextResponse.json({ success: true });
+}
