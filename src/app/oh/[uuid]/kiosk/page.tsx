@@ -10,6 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import Image, { type ImageLoaderProps } from "next/image";
 
 /**
  * iPad Kiosk Mode — Full-screen loop:
@@ -30,6 +31,8 @@ interface EventInfo {
 }
 
 type Phase = "loading" | "welcome" | "form" | "thanks" | "error";
+
+const passthroughLoader = ({ src }: ImageLoaderProps) => src;
 
 export default function KioskPage({
     params,
@@ -136,7 +139,15 @@ export default function KioskPage({
                 onClick={() => setPhase("form")}
             >
                 {event?.branding?.logoUrl && (
-                    <img src={event.branding.logoUrl} alt="Logo" className="h-16 mb-6 rounded-lg" />
+                    <Image
+                        loader={passthroughLoader}
+                        unoptimized
+                        src={event.branding.logoUrl}
+                        alt="Logo"
+                        width={240}
+                        height={64}
+                        className="h-16 w-auto mb-6 rounded-lg"
+                    />
                 )}
                 <div
                     className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl text-5xl"

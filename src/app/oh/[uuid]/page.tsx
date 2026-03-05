@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, Home, MapPin, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import Image, { type ImageLoaderProps } from "next/image";
 
 interface EventInfo {
     uuid: string;
@@ -36,6 +37,8 @@ interface EventInfo {
 }
 
 type Phase = "loading" | "form" | "success" | "error";
+
+const passthroughLoader = ({ src }: ImageLoaderProps) => src;
 
 export default function PublicSignInPage({
     params,
@@ -159,10 +162,14 @@ export default function PublicSignInPage({
                 style={{ background: `linear-gradient(135deg, ${primaryColor}15, ${primaryColor}05)` }}
             >
                 {event?.branding?.logoUrl && (
-                    <img
+                    <Image
+                        loader={passthroughLoader}
+                        unoptimized
                         src={event.branding.logoUrl}
                         alt="Logo"
-                        className="h-12 mx-auto mb-3 rounded"
+                        width={192}
+                        height={48}
+                        className="h-12 w-auto mx-auto mb-3 rounded"
                     />
                 )}
                 <Badge variant="secondary" className="mb-3 text-xs">

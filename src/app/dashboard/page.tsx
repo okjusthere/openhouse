@@ -1,105 +1,209 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import {
+    ArrowRight,
+    BadgeCheck,
     CalendarDays,
-    Users,
+    CheckCircle2,
     Flame,
+    Sparkles,
     TrendingUp,
+    Users,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const STATS = [
+const METRICS = [
     {
-        title: "Total Events",
+        title: "Total events",
         value: "0",
+        note: "Create your first open house to initialize the pipeline",
         icon: CalendarDays,
-        change: "Get started by creating your first event",
-        color: "text-blue-400",
-        bg: "bg-blue-500/10",
+        iconWrap: "bg-cyan-500/10 text-cyan-300",
     },
     {
-        title: "Total Sign-ins",
+        title: "Total sign-ins",
         value: "0",
+        note: "Visitors captured by QR and kiosk check-in",
         icon: Users,
-        change: "Visitors will appear here after sign-in",
-        color: "text-emerald-400",
-        bg: "bg-emerald-500/10",
+        iconWrap: "bg-emerald-500/10 text-emerald-300",
     },
     {
-        title: "Hot Leads",
+        title: "Hot leads",
         value: "0",
+        note: "High-intent buyers from AI scoring",
         icon: Flame,
-        change: "AI-scored hot leads (Pro)",
-        color: "text-orange-400",
-        bg: "bg-orange-500/10",
+        iconWrap: "bg-orange-500/10 text-orange-300",
     },
     {
-        title: "Conversion Rate",
+        title: "Conversion rate",
         value: "—",
+        note: "Lead-to-showing conversion benchmark",
         icon: TrendingUp,
-        change: "Lead-to-showing conversion",
-        color: "text-purple-400",
-        bg: "bg-purple-500/10",
+        iconWrap: "bg-indigo-500/10 text-indigo-300",
+    },
+];
+
+const OPERATING_STEPS = [
+    "Create an event with property details and timing.",
+    "Publish your branded QR sign-in at the open house.",
+    "Prioritize hot and warm leads before end of day.",
+    "Send AI-assisted follow-up drafts after review.",
+];
+
+const PIPELINE_BANDS = [
+    {
+        tier: "HOT",
+        guidance: "Same-hour callback with appointment CTA",
+        score: "Score 70+",
+        className: "border-orange-500/30 bg-orange-500/10 text-orange-200",
+    },
+    {
+        tier: "WARM",
+        guidance: "24-hour follow-up with listing context",
+        score: "Score 40-69",
+        className: "border-cyan-500/30 bg-cyan-500/10 text-cyan-200",
+    },
+    {
+        tier: "COLD",
+        guidance: "Long-cycle nurture and market education",
+        score: "Score < 40",
+        className: "border-border/60 bg-card/40 text-muted-foreground",
     },
 ];
 
 export default function DashboardPage() {
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-                <p className="text-muted-foreground mt-1">
-                    Overview of your Open House performance
-                </p>
-            </div>
+        <div className="space-y-7">
+            <Card className="overflow-hidden border-border/60 bg-card/65 shadow-xl shadow-emerald-900/10">
+                <CardContent className="relative p-6 md:p-7">
+                    <div className="pointer-events-none absolute right-[-4rem] top-[-5rem] h-52 w-52 rounded-full bg-emerald-500/14 blur-3xl" />
+                    <div className="pointer-events-none absolute bottom-[-5rem] left-[36%] h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl" />
 
-            {/* Stats Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {STATS.map((stat) => (
-                    <Card key={stat.title} className="border-border/50">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+                        Daily operations
+                    </Badge>
+                    <h1
+                        className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight md:text-4xl"
+                        style={{ fontFamily: '"Canela", "Fraunces", "Times New Roman", serif' }}
+                    >
+                        Run each open house like a repeatable revenue workflow.
+                    </h1>
+                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
+                        This command center tracks event execution, buyer intent, and follow-up readiness so
+                        your team can move quickly with consistent standards.
+                    </p>
+
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
+                        <Link href="/dashboard/events?new=1">
+                            <Button className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700">
+                                <CalendarDays className="mr-2 h-4 w-4" />
+                                Create first event
+                            </Button>
+                        </Link>
+                        <Link href="/dashboard/settings">
+                            <Button variant="outline">
+                                <Sparkles className="mr-2 h-4 w-4" />
+                                Compare Free vs Pro
+                            </Button>
+                        </Link>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {METRICS.map((metric) => (
+                    <Card key={metric.title} className="border-border/55 bg-card/60">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
-                                {stat.title}
+                                {metric.title}
                             </CardTitle>
-                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.bg}`}>
-                                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                            <div className={`rounded-lg p-2 ${metric.iconWrap}`}>
+                                <metric.icon className="h-4 w-4" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stat.value}</div>
-                            <p className="text-xs text-muted-foreground mt-1">{stat.change}</p>
+                            <p className="text-3xl font-semibold tracking-tight">{metric.value}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{metric.note}</p>
                         </CardContent>
                     </Card>
                 ))}
             </div>
 
-            {/* Welcome Card */}
-            <Card className="border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-teal-500/5">
-                <CardContent className="flex items-center gap-6 p-6">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-2xl">
-                        🏠
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold mb-1">Welcome to OpenHouse Pro!</h3>
+            <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+                <Card className="border-border/60 bg-card/60">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                            <BadgeCheck className="h-5 w-5 text-emerald-300" />
+                            90-minute launch checklist
+                        </CardTitle>
                         <p className="text-sm text-muted-foreground">
-                            Create your first Open House event to start capturing leads. Share the QR code
-                            at your next open house and watch the leads flow in.
+                            Operational sequence for a new team account.
                         </p>
-                        <div className="flex gap-2 mt-3">
-                            <Badge variant="secondary" className="text-xs">
-                                Step 1: Create Event
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                                Step 2: Share QR Code
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                                Step 3: View Leads
-                            </Badge>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {OPERATING_STEPS.map((step) => (
+                            <div
+                                key={step}
+                                className="flex items-start gap-3 rounded-2xl border border-border/55 bg-background/60 px-4 py-3"
+                            >
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                                <p className="text-sm text-muted-foreground">{step}</p>
+                            </div>
+                        ))}
+
+                        <Link href="/dashboard/events" className="inline-flex">
+                            <Button variant="ghost" className="px-0 text-emerald-300 hover:text-emerald-200">
+                                Open event manager
+                                <ArrowRight className="ml-1.5 h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+
+                <div className="space-y-4">
+                    <Card className="border-border/60 bg-card/60">
+                        <CardHeader>
+                            <CardTitle className="text-lg">Lead band standards</CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                                Shared language across agents and team leads.
+                            </p>
+                        </CardHeader>
+                        <CardContent className="space-y-2.5">
+                            {PIPELINE_BANDS.map((band) => (
+                                <div
+                                    key={band.tier}
+                                    className={`rounded-2xl border px-3 py-3 ${band.className}`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm font-semibold tracking-[0.08em]">{band.tier}</p>
+                                        <p className="text-xs">{band.score}</p>
+                                    </div>
+                                    <p className="mt-1 text-xs leading-relaxed">{band.guidance}</p>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-card/80">
+                        <CardContent className="p-5">
+                            <p className="text-sm font-semibold">Seller reporting expectation</p>
+                            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                                After each event, deliver a short report with traffic volume, lead tiers,
+                                and next-step recommendations. Keep AI drafts human-reviewed before sending.
+                            </p>
+                            <Link href="/dashboard/analytics" className="mt-3 inline-flex">
+                                <Button variant="outline" size="sm" className="border-emerald-500/35 text-emerald-300">
+                                    View analytics
+                                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </div>
     );
 }

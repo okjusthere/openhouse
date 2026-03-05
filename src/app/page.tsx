@@ -1,475 +1,694 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
-  QrCode,
-  Brain,
+  ArrowRight,
+  BadgeCheck,
   BarChart3,
-  Smartphone,
+  Brain,
+  Building2,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  Clock3,
+  FileCheck2,
+  Globe2,
   MessageSquareText,
+  ShieldCheck,
+  Sparkles,
   UserCheck,
   Zap,
-  Shield,
-  ArrowRight,
-  Check,
-  ChevronDown,
 } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
 
-/* ─────────────────────────────  DATA  ───────────────────────────── */
+const NAV_LINKS = [
+  { href: "#product", label: "Product" },
+  { href: "#workflow", label: "Workflow" },
+  { href: "#audience", label: "Who it's for" },
+  { href: "#pricing", label: "Pricing" },
+];
 
-const CAPABILITIES = [
+const HERO_STATS = [
+  { value: "3x", label: "faster lead qualification" },
+  { value: "< 60s", label: "from sign-in to scored lead" },
+  { value: "100", label: "PDL enrichments included in Pro" },
+];
+
+const PRODUCT_PILLARS = [
   {
-    icon: QrCode,
-    title: "QR code sign-in",
-    body: "Visitors scan a code from their phone. No app, no friction, no paper sheets to decipher later. Every sign-in is timestamped and structured.",
+    id: "01",
+    title: "Capture that feels branded",
+    description:
+      "Mobile sign-in, kiosk mode, QR entry points, and custom fields that look like your brokerage, not a generic form.",
+    icon: Building2,
   },
   {
+    id: "02",
+    title: "AI-native lead intelligence",
+    description:
+      "Rule + LLM scoring, tiering, recommendation text, and enrichment signals in a single profile built for next-action speed.",
     icon: Brain,
-    title: "AI lead scoring",
-    body: "A four-dimension scoring engine evaluates buy-readiness, financial strength, engagement, and urgency — then GPT refines the assessment with enriched data.",
-    pro: true,
   },
   {
-    icon: UserCheck,
-    title: "Contact enrichment",
-    body: "People Data Lab fills in what visitors leave out: job title, company, income signals, LinkedIn, education. 100 lookups included monthly.",
-    pro: true,
+    id: "03",
+    title: "Operational daily workflow",
+    description:
+      "From open-house setup to follow-up generation, every step is sequenced so agents can run events without tool switching.",
+    icon: CalendarDays,
   },
   {
-    icon: MessageSquareText,
-    title: "Property Q&A chatbot",
-    body: "An AI assistant grounded in MLS data and your custom FAQ answers visitor questions about the property, the neighborhood, and the process.",
-    pro: true,
-  },
-  {
-    icon: Zap,
-    title: "Automated follow-ups",
-    body: "AI generates a personalized follow-up email for every visitor, adapting tone and urgency to their lead tier. Review it, then send.",
-    pro: true,
-  },
-  {
-    icon: Smartphone,
-    title: "iPad kiosk mode",
-    body: "A full-screen loop designed for lobby display: welcome screen, sign-in form, thank-you — then it resets for the next visitor.",
-  },
-  {
+    id: "04",
+    title: "Seller-ready reporting",
+    description:
+      "Shareable report views, traffic timeline, visitor mix, and export controls for client updates and internal performance review.",
     icon: BarChart3,
-    title: "Seller reports",
-    body: "Professional analytics to share with your sellers: traffic timeline, interest breakdown, visitor list with lead badges, and key insights.",
-  },
-  {
-    icon: Shield,
-    title: "CRM integration",
-    body: "Push scored leads to Kevv CRM, Follow Up Boss, or any system via API. The SDK ships with typed methods for direct server integration.",
   },
 ];
 
-const WORKFLOW = [
+const WORKFLOW_STEPS = [
   {
-    step: "01",
-    title: "Create the event",
-    body: "Enter the address, set the window, add MLS details. Customize branding, compliance text, and any extra questions you need answered.",
+    step: "Step 1",
+    title: "Launch the event",
+    description:
+      "Create the open house, set event details, and publish a branded QR sign-in link in minutes.",
+    icon: CalendarDays,
   },
   {
-    step: "02",
-    title: "Share the link",
-    body: "Generate a QR code, print the one-page flyer, or drop an iPad in kiosk mode at the front door. Visitors sign in from their own device.",
+    step: "Step 2",
+    title: "Capture and score automatically",
+    description:
+      "Visitors sign in, leads are scored, and Pro plans run enrichment + recommendation logic with no manual trigger.",
+    icon: Zap,
   },
   {
-    step: "03",
-    title: "Review and follow up",
-    body: "AI scores every visitor, enriches their profile, and drafts a follow-up email. You review, adjust, and send — or export everything as CSV.",
+    step: "Step 3",
+    title: "Act and report",
+    description:
+      "Prioritize hot leads, generate AI follow-up drafts, and deliver a seller-facing report after the event.",
+    icon: FileCheck2,
+  },
+];
+
+const SCRIPT_PREVIEWS = [
+  {
+    key: "hot",
+    label: "Hot lead workflow",
+    note: "For immediate callback windows",
+    title: "Priority queue with urgency-first actions",
+    body: "OpenHouse marks buyer readiness + urgency signals, then recommends a same-hour outreach path with talking points tailored to intent and profile confidence.",
+    tags: ["Score 82", "Tier: HOT", "Follow-up: 1 hour"],
+  },
+  {
+    key: "warm",
+    label: "Warm lead workflow",
+    note: "For 24-hour nurture cadence",
+    title: "Structured next-day conversion flow",
+    body: "Warm leads receive a suggested email draft with property context, timeline hints, and a low-friction CTA for scheduling the next conversation.",
+    tags: ["Score 56", "Tier: WARM", "Follow-up: 24 hours"],
+  },
+  {
+    key: "cold",
+    label: "Cold lead workflow",
+    note: "For long-cycle relationship building",
+    title: "Low-pressure, list-building automation",
+    body: "Lower-intent visitors are tagged for long-cycle nurture with AI-assisted copy focused on education, market trust, and opt-in engagement.",
+    tags: ["Score 28", "Tier: COLD", "Follow-up: Drip"],
+  },
+];
+
+const AUDIENCE = [
+  {
+    role: "Solo agent",
+    title: "Needs consistency more than complexity",
+    description:
+      "For agents who need a dependable event-to-follow-up system without adding an operations headcount.",
+  },
+  {
+    role: "Team lead",
+    title: "Needs repeatable lead standards",
+    description:
+      "For teams that want every open house to follow the same capture, scoring, and reporting playbook.",
+  },
+  {
+    role: "Brokerage ops",
+    title: "Needs visibility and control",
+    description:
+      "For operators who need QA-friendly workflows, export controls, and performance transparency across events.",
+  },
+];
+
+const PRICING = [
+  {
+    name: "Free",
+    price: "$0",
+    period: "forever",
+    summary: "Best for individual agents starting digital sign-in.",
+    features: [
+      "3 open houses / month",
+      "50 sign-ins / month",
+      "QR + kiosk sign-in",
+      "Basic seller report",
+      "CSV export",
+    ],
+    cta: "Start Free",
+    highlighted: false,
+  },
+  {
+    name: "Pro",
+    price: "$29",
+    period: "/month",
+    summary: "Built for AI-first lead qualification and follow-up.",
+    features: [
+      "Unlimited events and sign-ins",
+      "AI lead scoring + recommendations",
+      "100 PDL enrichments / month",
+      "Property Q&A chatbot (500 queries / month)",
+      "AI follow-up generation",
+      "Detailed seller reporting",
+    ],
+    cta: "Start Pro",
+    highlighted: true,
   },
 ];
 
 const FAQ = [
   {
-    q: "What does the free plan include?",
-    a: "Three events per month, 50 sign-ins, QR code and kiosk mode, basic seller reports, and CSV export. No credit card required.",
+    q: "Can I run this at an in-person open house without a separate app?",
+    a: "Yes. Visitors can sign in through mobile web or kiosk mode using a QR link.",
   },
   {
-    q: "How does AI lead scoring work?",
-    a: "A rule-based engine evaluates four dimensions — buy-readiness, financial strength, engagement, and urgency — for an instant 0–100 score. On Pro, GPT refines the score using enriched contact data from People Data Lab.",
+    q: "Do I need Pro to score leads?",
+    a: "Free captures sign-ins. Pro unlocks AI scoring, enrichment, recommendations, and follow-up generation.",
   },
   {
-    q: "What is People Data Lab enrichment?",
-    a: "PDL cross-references a visitor's email or phone against a database of professional and demographic signals: job title, company, estimated income, education, social profiles. Pro includes 100 lookups per month; additional lookups cost $0.30 each.",
-  },
-  {
-    q: "Can I use this with my existing CRM?",
-    a: "Yes. Export data via CSV, connect through the REST API, or use the TypeScript SDK to integrate directly with Kevv CRM or other systems.",
-  },
-  {
-    q: "Should I publish AI-generated follow-ups without editing?",
-    a: "No. The follow-up generator is a draft engine. Every message should be reviewed for accuracy, tone, and compliance before sending.",
+    q: "Does the platform replace legal or compliance review?",
+    a: "No. OpenHouse accelerates drafts and prioritization. Agents should review outbound content before publishing.",
   },
 ];
 
-/* ─────────────────────────────  PAGE  ───────────────────────────── */
-
 export default function LandingPage() {
+  const [activePreview, setActivePreview] = useState("hot");
+
+  const selectedPreview = useMemo(
+    () => SCRIPT_PREVIEWS.find((item) => item.key === activePreview) ?? SCRIPT_PREVIEWS[0],
+    [activePreview]
+  );
+
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-[#e4e4e7]">
-      {/* ── Nav ── */}
-      <nav className="fixed top-0 z-50 w-full border-b border-white/[0.06] bg-[#0a0a0b]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 h-16">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-[#0a0a0b] text-sm font-bold tracking-tight">
-              O
-            </span>
-            <span className="text-[15px] font-semibold tracking-tight text-white">
-              OpenHouse
-              <span className="text-[#a1a1aa]"> · open house desk</span>
-            </span>
+    <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-[-22rem] h-[44rem] w-[44rem] -translate-x-1/2 rounded-full bg-emerald-400/10 blur-[120px]" />
+        <div className="absolute right-[-10rem] top-[20rem] h-[28rem] w-[28rem] rounded-full bg-cyan-400/10 blur-[120px]" />
+        <div className="absolute left-[-8rem] top-[38rem] h-[24rem] w-[24rem] rounded-full bg-teal-500/10 blur-[100px]" />
+      </div>
+
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
+          <Link href="/" className="inline-flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-semibold text-white">
+              OH
+            </div>
+            <div className="leading-tight">
+              <p className="text-sm font-semibold tracking-wide">OpenHouse</p>
+              <p className="text-[11px] text-muted-foreground">Agent growth platform</p>
+            </div>
           </Link>
-          <div className="hidden md:flex items-center gap-7 text-[13px] text-[#a1a1aa]">
-            <a href="#product" className="hover:text-white transition-colors">Product</a>
-            <a href="#workflow" className="hover:text-white transition-colors">Workflow</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-          </div>
-          <div className="flex items-center gap-3">
+
+          <nav className="hidden items-center gap-7 md:flex">
+            {NAV_LINKS.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
             <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-[13px] text-[#a1a1aa] hover:text-white">
-                Sign in
+              <Button variant="ghost" size="sm">
+                Sign In
               </Button>
             </Link>
             <Link href="/register">
-              <Button size="sm" className="text-[13px] bg-white text-[#0a0a0b] hover:bg-white/90 border-0 rounded-md h-8 px-4 font-medium">
-                Start free
+              <Button
+                size="sm"
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700"
+              >
+                Start Free
               </Button>
             </Link>
           </div>
         </div>
-      </nav>
+      </header>
 
-      {/* ── Hero ── */}
-      <section className="pt-32 pb-20 md:pt-44 md:pb-32">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-3xl">
-            <h1 className="text-[clamp(2.25rem,5vw,3.75rem)] font-bold leading-[1.08] tracking-tight text-white">
-              Your open house desk.{" "}
-              <span className="text-[#a1a1aa]">
-                Not another paper sign-in sheet.
+      <main>
+        <section className="mx-auto grid max-w-7xl gap-10 px-5 pb-16 pt-16 md:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:gap-14 lg:pb-24 lg:pt-20">
+          <div>
+            <Badge className="mb-5 border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+              For North American real estate teams
+            </Badge>
+            <h1
+              className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl"
+              style={{ fontFamily: '"Canela", "Fraunces", "Times New Roman", serif' }}
+            >
+              Turn every open house into a{" "}
+              <span className="bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">
+                measured lead pipeline
               </span>
+              .
             </h1>
-            <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-[#a1a1aa]">
-              OpenHouse turns visitor sign-ins into scored, enriched, follow-up-ready leads.
-              Set up the event, share a QR code, and let AI handle scoring, enrichment, and
-              draft follow-ups — so you spend the open house talking to buyers, not transcribing
-              handwriting.
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              OpenHouse is an AI-native event workflow for modern brokerages: branded sign-in,
+              automatic lead scoring, enrichment, and seller-ready reporting in one operational
+              surface.
             </p>
-            <div className="mt-10 flex items-center gap-4">
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href="/register">
-                <Button className="h-11 px-7 text-[14px] bg-white text-[#0a0a0b] hover:bg-white/90 border-0 rounded-md font-medium">
-                  Get started free
+                <Button
+                  size="lg"
+                  className="h-12 bg-gradient-to-r from-emerald-500 to-teal-600 px-6 text-white hover:from-emerald-600 hover:to-teal-700"
+                >
+                  Launch your first event
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <a href="#product">
-                <Button variant="ghost" className="h-11 px-5 text-[14px] text-[#a1a1aa] hover:text-white">
-                  See the product
+                <Button size="lg" variant="outline" className="h-12 px-6">
+                  Explore product
                 </Button>
               </a>
             </div>
-            <p className="mt-5 text-[13px] text-[#52525b]">
-              Free plan available · No credit card required · Works on any device
-            </p>
-          </div>
-        </div>
-      </section>
 
-      {/* ── Quiet divider ── */}
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="border-t border-white/[0.06]" />
-      </div>
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {HERO_STATS.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-border/60 bg-card/60 px-4 py-3 backdrop-blur"
+                >
+                  <p className="text-2xl font-semibold text-emerald-300">{stat.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
+            </div>
 
-      {/* ── Product: Capabilities ── */}
-      <section id="product" className="py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-xl mb-14">
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Capture, score, enrich, follow up.
-            </h2>
-            <p className="mt-3 text-[#a1a1aa] text-[15px] leading-relaxed">
-              OpenHouse packages the sign-in, scoring, enrichment, and follow-up workflow
-              that usually eats the first two hours after a showing.
+            <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-border/50 bg-card/40 px-3 py-1.5 text-xs text-muted-foreground">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
+              AI outputs are draft-first. Human review stays in your workflow.
             </p>
           </div>
 
-          <div className="grid gap-px bg-white/[0.04] border border-white/[0.06] rounded-xl overflow-hidden md:grid-cols-2">
-            {CAPABILITIES.map((c) => (
-              <div
-                key={c.title}
-                className="bg-[#0a0a0b] p-7 group hover:bg-white/[0.02] transition-colors"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-[#a1a1aa] group-hover:text-white transition-colors">
-                    <c.icon className="h-[18px] w-[18px]" />
+          <aside className="rounded-3xl border border-border/60 bg-card/65 p-5 shadow-2xl shadow-emerald-900/10 backdrop-blur-xl md:p-6">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-300/90">
+                Daily ops snapshot
+              </p>
+              <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+                Live Workflow
+              </Badge>
+            </div>
+
+            <div className="mt-4 space-y-3 rounded-2xl border border-border/50 bg-background/60 p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Saturday Open House</span>
+                <span className="font-medium">123 Park Avenue, NY</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-xl bg-muted/40 p-2.5 text-center">
+                  <p className="text-lg font-semibold">27</p>
+                  <p className="text-[11px] text-muted-foreground">sign-ins</p>
+                </div>
+                <div className="rounded-xl bg-muted/40 p-2.5 text-center">
+                  <p className="text-lg font-semibold text-orange-300">6</p>
+                  <p className="text-[11px] text-muted-foreground">hot leads</p>
+                </div>
+                <div className="rounded-xl bg-muted/40 p-2.5 text-center">
+                  <p className="text-lg font-semibold text-cyan-300">14</p>
+                  <p className="text-[11px] text-muted-foreground">follow-ups</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {[
+                {
+                  title: "Kiosk capture completed",
+                  meta: "11:26 AM",
+                  icon: UserCheck,
+                },
+                {
+                  title: "AI score + recommendation generated",
+                  meta: "11:26 AM",
+                  icon: Brain,
+                },
+                {
+                  title: "PDL profile enriched",
+                  meta: "11:27 AM",
+                  icon: Globe2,
+                },
+                {
+                  title: "Follow-up draft ready",
+                  meta: "11:29 AM",
+                  icon: MessageSquareText,
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="flex items-start justify-between rounded-2xl border border-border/50 bg-background/55 px-4 py-3"
+                >
+                  <div className="inline-flex items-start gap-3">
+                    <div className="mt-0.5 rounded-lg bg-emerald-500/10 p-1.5 text-emerald-300">
+                      <item.icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">{item.meta}</p>
+                    </div>
                   </div>
+                  <BadgeCheck className="mt-0.5 h-4 w-4 text-emerald-300" />
+                </div>
+              ))}
+            </div>
+          </aside>
+        </section>
+
+        <section id="product" className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
+          <div className="max-w-3xl">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-300/90">
+              Product
+            </p>
+            <h2
+              className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+              style={{ fontFamily: '"Canela", "Fraunces", "Times New Roman", serif' }}
+            >
+              Purpose-built for brokerage-grade open house operations.
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Not another generic form builder. Each module maps to how North American agents
+              actually run events, qualify visitors, and report outcomes.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {PRODUCT_PILLARS.map((pillar) => (
+              <article
+                key={pillar.title}
+                className="group rounded-3xl border border-border/60 bg-card/50 p-5 transition-all hover:border-emerald-500/30 hover:bg-card/70 md:p-6"
+              >
+                <div className="flex items-start justify-between">
+                  <span className="text-xs font-medium tracking-[0.16em] text-muted-foreground">
+                    {pillar.id}
+                  </span>
+                  <div className="rounded-xl bg-emerald-500/10 p-2 text-emerald-300 transition-colors group-hover:bg-emerald-500/20">
+                    <pillar.icon className="h-4 w-4" />
+                  </div>
+                </div>
+                <h3 className="mt-4 text-lg font-semibold">{pillar.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {pillar.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="workflow" className="border-y border-border/60 bg-muted/20">
+          <div className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
+            <div className="max-w-3xl">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-300/90">
+                Workflow
+              </p>
+              <h2
+                className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+                style={{ fontFamily: '"Canela", "Fraunces", "Times New Roman", serif' }}
+              >
+                Open. Scan. Score. Follow up.
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                A single operating loop, from event launch to post-event outreach.
+              </p>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {WORKFLOW_STEPS.map((item) => (
+                <article
+                  key={item.step}
+                  className="rounded-3xl border border-border/60 bg-card/55 p-5 md:p-6"
+                >
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                    {item.step}
+                  </p>
+                  <div className="mt-3 inline-flex rounded-xl bg-emerald-500/10 p-2 text-emerald-300">
+                    <item.icon className="h-4 w-4" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold">{item.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto grid max-w-7xl gap-8 px-5 py-16 md:px-8 md:py-20 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-300/90">
+              AI playbooks
+            </p>
+            <h2
+              className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+              style={{ fontFamily: '"Canela", "Fraunces", "Times New Roman", serif' }}
+            >
+              Different lead tiers, different operating moves.
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              OpenHouse does not flatten every visitor into one sequence. It aligns recommendations
+              to urgency and likelihood.
+            </p>
+
+            <div className="mt-6 space-y-2">
+              {SCRIPT_PREVIEWS.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setActivePreview(item.key)}
+                  className={`w-full rounded-2xl border p-3 text-left transition-colors ${activePreview === item.key
+                      ? "border-emerald-500/40 bg-emerald-500/10"
+                      : "border-border/60 bg-card/40 hover:border-emerald-500/25"
+                    }`}
+                >
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.note}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <article className="rounded-3xl border border-border/60 bg-card/55 p-6 md:p-7">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Inside the recommendation engine
+              </p>
+              <Clock3 className="h-4 w-4 text-emerald-300" />
+            </div>
+            <h3 className="mt-4 text-xl font-semibold">{selectedPreview.title}</h3>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{selectedPreview.body}</p>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {selectedPreview.tags.map((tag) => (
+                <Badge
+                  key={tag}
+                  className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-border/60 bg-background/70 p-4">
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                Why teams keep this
+              </p>
+              <ul className="mt-3 space-y-2">
+                {[
+                  "Prioritization is standardized across every event.",
+                  "Outreach copy is generated in the same workflow context.",
+                  "Seller reporting remains aligned with lead actions.",
+                ].map((line) => (
+                  <li key={line} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        </section>
+
+        <section id="audience" className="border-y border-border/60 bg-muted/20">
+          <div className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
+            <div className="max-w-3xl">
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-300/90">
+                Who it&apos;s for
+              </p>
+              <h2
+                className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+                style={{ fontFamily: '"Canela", "Fraunces", "Times New Roman", serif' }}
+              >
+                Built for teams that treat open houses as pipeline operations.
+              </h2>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {AUDIENCE.map((profile) => (
+                <article
+                  key={profile.role}
+                  className="rounded-3xl border border-border/60 bg-card/55 p-5 md:p-6"
+                >
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-emerald-300">
+                    {profile.role}
+                  </p>
+                  <h3 className="mt-3 text-lg font-semibold">{profile.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{profile.description}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              <article className="rounded-3xl border border-border/60 bg-card/55 p-5 md:p-6">
+                <p className="text-sm font-semibold">Operational guardrail</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  OpenHouse is a lead operations platform. It is not legal, tax, MLS, fair housing,
+                  or RESPA compliance advice.
+                </p>
+              </article>
+              <article className="rounded-3xl border border-border/60 bg-card/55 p-5 md:p-6">
+                <p className="text-sm font-semibold">Publishing expectation</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  AI-generated recommendations and follow-up drafts should be reviewed by your team
+                  before outbound use.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section id="pricing" className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
+          <div className="max-w-3xl">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-300/90">
+              Pricing
+            </p>
+            <h2
+              className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+              style={{ fontFamily: '"Canela", "Fraunces", "Times New Roman", serif' }}
+            >
+              Two plans, clear operating boundaries.
+            </h2>
+          </div>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+            {PRICING.map((plan) => (
+              <article
+                key={plan.name}
+                className={`rounded-3xl border p-6 md:p-7 ${plan.highlighted
+                    ? "border-emerald-500/40 bg-gradient-to-b from-emerald-500/10 to-card/70 shadow-xl shadow-emerald-900/10"
+                    : "border-border/60 bg-card/55"
+                  }`}
+              >
+                <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-[15px] font-semibold text-white flex items-center gap-2">
-                      {c.title}
-                      {c.pro && (
-                        <span className="inline-flex items-center rounded-[4px] border border-white/[0.1] bg-white/[0.04] px-1.5 py-px text-[10px] font-medium uppercase tracking-wider text-[#a1a1aa]">
-                          Pro
-                        </span>
-                      )}
-                    </h3>
-                    <p className="mt-1.5 text-[13px] leading-relaxed text-[#71717a]">
-                      {c.body}
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                      {plan.name}
+                    </p>
+                    <p className="mt-2 text-4xl font-semibold tracking-tight">
+                      {plan.price}
+                      <span className="ml-1 text-base text-muted-foreground">{plan.period}</span>
                     </p>
                   </div>
+                  {plan.highlighted && (
+                    <Badge className="border-emerald-500/30 bg-emerald-500/15 text-emerald-300">
+                      Recommended
+                    </Badge>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ── Workflow ── */}
-      <section id="workflow" className="py-20 md:py-28 border-y border-white/[0.06]">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-xl mb-14">
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Create, share, follow up.
-            </h2>
-            <p className="mt-3 text-[#a1a1aa] text-[15px] leading-relaxed">
-              OpenHouse is intentionally simple in the handoff: create the event, share the
-              sign-in link, and review AI-scored results with one-click follow-ups.
-            </p>
-          </div>
+                <p className="mt-3 text-sm text-muted-foreground">{plan.summary}</p>
 
-          <div className="grid gap-8 md:grid-cols-3">
-            {WORKFLOW.map((w) => (
-              <div key={w.step} className="group">
-                <div className="text-[13px] font-medium text-[#52525b] tracking-wider mb-3">
-                  {w.step}
-                </div>
-                <h3 className="text-[17px] font-semibold text-white mb-2">
-                  {w.title}
-                </h3>
-                <p className="text-[13px] leading-relaxed text-[#71717a]">
-                  {w.body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Audience ── */}
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-xl mb-14">
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Built for three workflows.
-            </h2>
-          </div>
-          <div className="grid gap-8 md:grid-cols-3">
-            {[
-              {
-                role: "Solo agents",
-                need: "Needs lead capture without the tech overhead.",
-                body: "For agents who run 2–5 open houses a month and want QR-code sign-in, instant lead scoring, and AI follow-ups without managing another SaaS tool.",
-              },
-              {
-                role: "Teams",
-                need: "Needs a shared pipeline from every showing.",
-                body: "For teams whose open house leads used to land in individual spreadsheets. One dashboard, one scoring engine, push to your CRM.",
-              },
-              {
-                role: "Brokerage ops",
-                need: "Needs reporting and compliance at scale.",
-                body: "For managing brokers who want visibility into Open House activity across agents: seller reports, lead volumes, and an audit trail from sign-in to follow-up.",
-              },
-            ].map((a) => (
-              <Card key={a.role} className="bg-white/[0.02] border-white/[0.06] rounded-xl">
-                <CardContent className="p-7">
-                  <h3 className="text-[15px] font-semibold text-white">{a.role}</h3>
-                  <p className="mt-1 text-[13px] text-[#a1a1aa] italic">{a.need}</p>
-                  <p className="mt-3 text-[13px] leading-relaxed text-[#71717a]">{a.body}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Pricing ── */}
-      <section id="pricing" className="py-20 md:py-28 border-y border-white/[0.06]">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-xl mb-14">
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              One product. Two tiers.
-            </h2>
-            <p className="mt-3 text-[#a1a1aa] text-[15px] leading-relaxed">
-              Start with the free plan. Upgrade when you want AI scoring, enrichment, and
-              automated follow-ups.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 max-w-3xl">
-            {/* Free */}
-            <Card className="bg-white/[0.02] border-white/[0.06] rounded-xl">
-              <CardContent className="p-7">
-                <h3 className="text-[15px] font-semibold text-white">Free</h3>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-white">$0</span>
-                  <span className="text-[13px] text-[#71717a]">forever</span>
-                </div>
-                <p className="mt-2 text-[13px] text-[#71717a]">
-                  Core sign-in and reporting tools, no credit card.
-                </p>
-                <ul className="mt-6 space-y-2.5">
-                  {[
-                    "3 events / month",
-                    "50 sign-ins / month",
-                    "QR code + kiosk mode",
-                    "Basic seller report",
-                    "CSV export",
-                  ].map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-[13px] text-[#a1a1aa]">
-                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#52525b]" />
-                      {f}
+                <ul className="mt-5 space-y-2">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
-                <Link href="/register" className="block mt-7">
-                  <Button variant="outline" className="w-full h-10 text-[13px] rounded-md border-white/[0.1] text-[#a1a1aa] hover:text-white hover:border-white/[0.2]">
-                    Get started
+
+                <Link href="/register" className="mt-6 block">
+                  <Button
+                    className={`w-full ${plan.highlighted
+                        ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700"
+                        : ""
+                      }`}
+                    variant={plan.highlighted ? "default" : "outline"}
+                  >
+                    {plan.cta}
+                    <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 </Link>
-              </CardContent>
-            </Card>
-
-            {/* Pro */}
-            <Card className="bg-white/[0.02] border-white/[0.15] rounded-xl relative">
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-              <CardContent className="p-7">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[15px] font-semibold text-white">Pro</h3>
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-[#a1a1aa] border border-white/[0.1] rounded px-2 py-0.5">
-                    Popular
-                  </span>
-                </div>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-white">$29</span>
-                  <span className="text-[13px] text-[#71717a]">/month</span>
-                </div>
-                <p className="mt-2 text-[13px] text-[#71717a]">
-                  Everything in Free, plus AI scoring, enrichment, and follow-ups.
-                </p>
-                <ul className="mt-6 space-y-2.5">
-                  {[
-                    "Unlimited events",
-                    "Unlimited sign-ins",
-                    "AI lead scoring (rule + GPT)",
-                    "100 PDL enrichments / mo",
-                    "AI property Q&A (500 / mo)",
-                    "AI follow-up drafts",
-                    "Enhanced seller reports",
-                    "CRM integration + API",
-                    "Priority support",
-                  ].map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-[13px] text-[#a1a1aa]">
-                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/60" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/register" className="block mt-7">
-                  <Button className="w-full h-10 text-[13px] rounded-md bg-white text-[#0a0a0b] hover:bg-white/90 border-0 font-medium">
-                    Start Pro trial
-                  </Button>
-                </Link>
-                <p className="mt-3 text-[11px] text-[#52525b] text-center">
-                  PDL overage: $0.30 per additional lookup
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FAQ ── */}
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-xl mb-14">
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Common questions.
-            </h2>
-          </div>
-          <div className="max-w-2xl space-y-0 divide-y divide-white/[0.06]">
-            {FAQ.map((f) => (
-              <FaqItem key={f.q} q={f.q} a={f.a} />
+              </article>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ── Compliance ── */}
-      <section className="border-t border-white/[0.06] py-10">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-[12px] leading-relaxed text-[#52525b] max-w-2xl">
-            OpenHouse is a lead-capture and scoring tool for residential real estate agents.
-            It is not legal, tax, fair housing, or MLS compliance advice. Agents should review
-            AI-generated content — including follow-up drafts and chatbot responses — before
-            publication or distribution, especially where local regulations, brokerage policy,
-            or fair housing sensitivity apply.
+          <p className="mt-5 text-xs text-muted-foreground">
+            Pro includes 100 PDL enrichments monthly. Additional enrichment usage is billed at $0.30
+            per lookup.
           </p>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-white/[0.06] py-8">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded bg-white text-[#0a0a0b] text-[11px] font-bold">
-                O
-              </span>
-              <span className="text-[13px] font-semibold text-white">OpenHouse</span>
-            </Link>
-            <div className="flex gap-6 text-[12px] text-[#52525b]">
-              <a href="#" className="hover:text-[#a1a1aa] transition-colors">Privacy</a>
-              <a href="#" className="hover:text-[#a1a1aa] transition-colors">Terms</a>
-              <a href="https://rescript.kevv.ai" className="hover:text-[#a1a1aa] transition-colors" target="_blank" rel="noopener noreferrer">
-                A Kevv product
-              </a>
+        <section className="mx-auto max-w-7xl px-5 pb-20 md:px-8">
+          <div className="rounded-3xl border border-border/60 bg-card/55 p-6 md:p-8">
+            <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-start">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-300/90">
+                  FAQ
+                </p>
+                <h2
+                  className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+                  style={{ fontFamily: '"Canela", "Fraunces", "Times New Roman", serif' }}
+                >
+                  Questions teams ask before rollout.
+                </h2>
+              </div>
+
+              <div className="space-y-4">
+                {FAQ.map((item) => (
+                  <article
+                    key={item.q}
+                    className="rounded-2xl border border-border/60 bg-background/65 p-4"
+                  >
+                    <h3 className="text-sm font-semibold">{item.q}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{item.a}</p>
+                  </article>
+                ))}
+              </div>
             </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-border/60">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-6 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between md:px-8">
+          <p>© 2026 OpenHouse · AI-native open house operations for North America</p>
+          <div className="inline-flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
+            <span>Designed for real estate teams that execute daily.</span>
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-/* ─────────────────────────────  FAQ ACCORDION  ───────────────────── */
-
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="py-5">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between text-left group"
-      >
-        <span className="text-[14px] font-medium text-white group-hover:text-white/80 transition-colors pr-4">
-          {q}
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 text-[#52525b] transition-transform ${open ? "rotate-180" : ""
-            }`}
-        />
-      </button>
-      {open && (
-        <p className="mt-3 text-[13px] leading-relaxed text-[#71717a] pr-8">
-          {a}
-        </p>
-      )}
     </div>
   );
 }
