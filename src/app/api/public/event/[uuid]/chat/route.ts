@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { chatWithProperty } from "@/lib/ai/property-qa";
+import { getAiDeploymentName } from "@/lib/ai/openai";
 import { randomUUID } from "crypto";
 
 type EligibleContext =
@@ -180,7 +181,14 @@ export async function POST(
         // Save conversation
         await db.insert(aiConversations).values([
             { eventId: event.id, sessionId, role: "user", content: message, tokensUsed: 0 },
-            { eventId: event.id, sessionId, role: "assistant", content: result.reply, tokensUsed: result.tokensUsed, model: "gpt-4o-mini" },
+            {
+                eventId: event.id,
+                sessionId,
+                role: "assistant",
+                content: result.reply,
+                tokensUsed: result.tokensUsed,
+                model: getAiDeploymentName(),
+            },
         ]);
 
         // Increment AI usage

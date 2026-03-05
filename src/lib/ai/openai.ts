@@ -14,19 +14,25 @@ interface ChatCompletionOptions {
     responseFormat?: "json" | "text";
 }
 
+const DEFAULT_AZURE_DEPLOYMENT = "gpt-5-mini";
+
+export function getAiDeploymentName() {
+    return process.env.AZURE_OPENAI_DEPLOYMENT || DEFAULT_AZURE_DEPLOYMENT;
+}
+
 export async function chatCompletion(options: ChatCompletionOptions): Promise<{
     content: string;
     tokensUsed: number;
 }> {
     const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
     const apiKey = process.env.AZURE_OPENAI_API_KEY;
-    const deployment = process.env.AZURE_OPENAI_DEPLOYMENT || "gpt-4o-mini";
+    const deployment = getAiDeploymentName();
 
     if (!endpoint || !apiKey) {
         throw new Error("Azure OpenAI credentials not configured");
     }
 
-    const url = `${endpoint}/openai/deployments/${deployment}/chat/completions?api-version=2024-08-01-preview`;
+    const url = `${endpoint.replace(/\/+$/, "")}/openai/deployments/${deployment}/chat/completions?api-version=2024-08-01-preview`;
 
     const body: Record<string, unknown> = {
         messages: options.messages,
@@ -54,9 +60,16 @@ export async function chatCompletion(options: ChatCompletionOptions): Promise<{
 
     const data = await response.json();
     const choice = data.choices?.[0];
+    const tokensUsed =
+        data.usage?.total_tokens ??
+        data.usage?.output_tokens ??
+        (typeof data.usage?.prompt_tokens === "number" &&
+            typeof data.usage?.completion_tokens === "number"
+            ? data.usage.prompt_tokens + data.usage.completion_tokens
+            : 0);
 
     return {
         content: choice?.message?.content || "",
-        tokensUsed: data.usage?.total_tokens || 0,
+        tokensUsed,
     };
 }
