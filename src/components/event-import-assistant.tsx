@@ -66,7 +66,7 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
 
   const hasAddressResults = addressResults.length > 0;
   const mlsHelper = useMemo(
-    () => "Paste an MLS number to pull structured property data and enrich the event draft.",
+    () => "Paste an MLS number to pull structured property data from OneKey and enrich the event draft.",
     []
   );
 
@@ -178,6 +178,14 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
           <Sparkles className="h-3.5 w-3.5" />
           AI-native property import
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge className="border-sky-500/20 bg-sky-500/10 text-sky-700">
+            OneKey Support
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            MLS import is currently optimized for OneKey. More MLS connectors are coming soon.
+          </span>
+        </div>
         <div>
           <CardTitle className="text-base sm:text-lg">Start with listing data instead of a blank form</CardTitle>
           <CardDescription className="mt-1 max-w-2xl text-sm leading-relaxed">
@@ -239,6 +247,10 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
                   </Button>
                 </div>
                 <p className="text-xs leading-relaxed text-muted-foreground">{mlsHelper}</p>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  Current provider: OneKey REST alias. If the MLS payload is incomplete, keep the
+                  flyer upload path as the manual fallback.
+                </p>
               </div>
 
               <div className="rounded-3xl border border-dashed border-border/70 bg-muted/20 p-4">
