@@ -289,7 +289,6 @@ export default function PublicSignInPage({
                                     options={[
                                         { value: "yes", label: "Yes" },
                                         { value: "no", label: "No" },
-                                        { value: "not_yet", label: "Not yet" },
                                     ]}
                                 />
                             </div>
