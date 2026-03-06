@@ -17,12 +17,14 @@ interface EventInfo {
     uuid: string;
     propertyAddress: string;
     listPrice: string | null;
-    branding: { logoUrl?: string; primaryColor?: string; tagline?: string } | null;
+    branding: { logoUrl?: string; primaryColor?: string; tagline?: string; flyerImageUrl?: string } | null;
     customFields: Array<{ label: string; type: "text" | "select"; options?: string[] }> | null;
     complianceText: string | null;
     bedrooms: number | null;
     bathrooms: string | null;
     sqft: number | null;
+    propertyPhotos: string[] | null;
+    propertyDescription: string | null;
 }
 
 type Phase = "loading" | "welcome" | "form" | "thanks" | "error";
@@ -104,6 +106,7 @@ export default function KioskPage({
     };
 
     const color = event?.branding?.primaryColor || "#10b981";
+    const heroImage = event?.propertyPhotos?.[0] || event?.branding?.flyerImageUrl || null;
 
     if (phase === "loading") {
         return (
@@ -134,6 +137,17 @@ export default function KioskPage({
             >
                 <div className="mx-auto flex h-full w-full max-w-4xl items-center justify-center">
                     <div className="w-full rounded-[2rem] border border-border/60 bg-white/92 px-10 py-12 shadow-2xl shadow-emerald-900/5 backdrop-blur">
+                        {heroImage && (
+                            <Image
+                                loader={passthroughLoader}
+                                unoptimized
+                                src={heroImage}
+                                alt={event?.propertyAddress || "Property photo"}
+                                width={1440}
+                                height={720}
+                                className="mb-6 h-52 w-full rounded-[1.5rem] object-cover"
+                            />
+                        )}
                         {event?.branding?.logoUrl && (
                             <Image
                                 loader={passthroughLoader}
@@ -166,6 +180,11 @@ export default function KioskPage({
                         )}
                         {event?.branding?.tagline && (
                             <p className="mb-8 text-muted-foreground">{event.branding.tagline}</p>
+                        )}
+                        {event?.propertyDescription && (
+                            <p className="mx-auto mb-8 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                                {event.propertyDescription}
+                            </p>
                         )}
                         <div
                             className="mx-auto inline-flex rounded-2xl px-10 py-4 text-xl font-semibold text-white animate-pulse"
@@ -206,11 +225,27 @@ export default function KioskPage({
             <div className="mx-auto max-w-lg px-6 py-8">
                 {/* Header */}
                 <div className="mb-6 text-center">
+                    {heroImage && (
+                        <Image
+                            loader={passthroughLoader}
+                            unoptimized
+                            src={heroImage}
+                            alt={event?.propertyAddress || "Property photo"}
+                            width={1200}
+                            height={640}
+                            className="mb-5 h-44 w-full rounded-[1.5rem] object-cover shadow-lg shadow-emerald-900/8"
+                        />
+                    )}
                     <div className="mb-3 inline-flex rounded-full border border-border/60 bg-background/70 px-3 py-1.5">
                         <BrandLockup compact />
                     </div>
                     <h1 className="mb-1 text-2xl font-bold">Sign In</h1>
                     <p className="text-sm text-muted-foreground">{event?.propertyAddress}</p>
+                    {event?.propertyDescription && (
+                        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+                            {event.propertyDescription}
+                        </p>
+                    )}
                 </div>
 
                 <form

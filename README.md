@@ -100,9 +100,23 @@ LISTING_DATA_API_URL=https://your-listing-service.example.com
 LISTING_DATA_API_KEY=...
 ```
 
+For your onekey/BBO service, OpenHouse also accepts these aliases directly:
+
+```bash
+BBO_BASE_URL=https://onekey.kevv.ai
+BBO_API_KEY=bbo_sk_xxx
+```
+
+When `BBO_BASE_URL` is present, the MLS import path defaults to:
+
+```bash
+/api/v1/listings/:mlsId
+```
+
 The default adapter expects:
 
-- `GET /api/v1/listings/mls/:mlsId`
+- `GET /api/v1/listings/mls/:mlsId` for the legacy listing service
+- `GET /api/v1/listings/:mlsId` when using the onekey/BBO alias env
 - `POST /api/v1/search`
 
 If your service uses different paths, override them:

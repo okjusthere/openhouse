@@ -26,6 +26,7 @@ export async function generateMetadata({
         propertyAddress: events.propertyAddress,
         listPrice: events.listPrice,
         branding: events.branding,
+        propertyPhotos: events.propertyPhotos,
       })
       .from(events)
       .where(eq(events.uuid, uuid))
@@ -56,7 +57,11 @@ export async function generateMetadata({
       ? `${event.propertyAddress} (${readablePrice}) visitor sign-in page powered by OpenHouse.`
       : `${event.propertyAddress} visitor sign-in page powered by OpenHouse.`;
 
-    const socialImage = event.branding?.logoUrl || absoluteUrl("/opengraph-image");
+    const socialImage =
+      event.propertyPhotos?.[0] ||
+      event.branding?.flyerImageUrl ||
+      event.branding?.logoUrl ||
+      absoluteUrl("/opengraph-image");
 
     return {
       title,

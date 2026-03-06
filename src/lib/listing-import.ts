@@ -11,6 +11,7 @@ type ImportedListing = {
   source: "mls" | "address" | "flyer";
   id: string | null;
   mlsNumber: string | null;
+  listingKey: string | null;
   address: string;
   city: string | null;
   state: string | null;
@@ -30,6 +31,9 @@ type ImportedListing = {
   photos: string[];
   virtualTourUrl: string | null;
   daysOnMarket: number | null;
+  providerSource: string | null;
+  fallbackUsed: boolean | null;
+  rawPayload: Record<string, unknown> | null;
 };
 
 const flyerExtractionSchema = z.object({
@@ -60,18 +64,22 @@ const flyerExtractionSchema = z.object({
 });
 
 function getListingImportConfig() {
+  const usesBboAlias = Boolean(process.env.BBO_BASE_URL || process.env.BBO_API_KEY);
   const baseUrl =
     process.env.LISTING_DATA_API_URL ||
+    process.env.BBO_BASE_URL ||
     process.env.REAL_ESTATE_API_URL ||
     process.env.MLS_IMPORT_API_URL ||
     "";
   const apiKey =
     process.env.LISTING_DATA_API_KEY ||
+    process.env.BBO_API_KEY ||
     process.env.REAL_ESTATE_API_KEY ||
     process.env.MLS_IMPORT_API_KEY ||
     "";
   const mlsPath =
-    process.env.LISTING_DATA_MLS_LOOKUP_PATH || "/api/v1/listings/mls/:mlsId";
+    process.env.LISTING_DATA_MLS_LOOKUP_PATH ||
+    (usesBboAlias ? "/api/v1/listings/:mlsId" : "/api/v1/listings/mls/:mlsId");
   const addressSearchPath =
     process.env.LISTING_DATA_ADDRESS_SEARCH_PATH || "/api/v1/search";
 
@@ -177,6 +185,24 @@ function toStringArray(value: unknown): string[] {
   return [];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function toBoolean(value: unknown): boolean | null {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+  }
+
+  return null;
+}
+
 function mapPropertyType(value: string | null | undefined): OpenHousePropertyType | null {
   if (!value) {
     return null;
@@ -217,29 +243,63 @@ function normalizeImportedListing(
   rawListing: Record<string, unknown>,
   source: ImportedListing["source"]
 ): ImportedListing {
+  const property = isRecord(rawListing.property) ? rawListing.property : rawListing;
+  const mediaItems = Array.isArray(rawListing.media)
+    ? rawListing.media.filter(isRecord)
+    : [];
+  const derivedPhotos = [
+    ...toStringArray(rawListing.imageUrls),
+    ...mediaItems.flatMap((item) =>
+      [
+        toStringValue(item.displayUrl),
+        toStringValue(item.mediaURL),
+        toStringValue(item.rawUrl),
+        toStringValue(item.url),
+      ].filter((entry): entry is string => Boolean(entry))
+    ),
+    ...toStringArray(property.photos),
+  ].filter(Boolean);
+
   return {
     source,
-    id: toStringValue(rawListing.id ?? rawListing.listing_id),
-    mlsNumber: toStringValue(rawListing.mls_id ?? rawListing.mlsNumber ?? rawListing.mls_number),
-    address: toStringValue(rawListing.address) || "Imported property",
-    city: toStringValue(rawListing.city),
-    state: toStringValue(rawListing.state),
-    zipCode: toStringValue(rawListing.zip_code ?? rawListing.zipCode),
-    listPrice: toNumber(rawListing.price ?? rawListing.list_price ?? rawListing.listPrice),
-    bedrooms: toNumber(rawListing.bedrooms),
-    bathrooms: toNumber(rawListing.bathrooms),
-    sqft: toNumber(rawListing.sqft),
-    lotSize: toNumber(rawListing.lot_size ?? rawListing.lotSize),
-    yearBuilt: toNumber(rawListing.year_built ?? rawListing.yearBuilt),
-    propertyType: mapPropertyType(toStringValue(rawListing.property_type ?? rawListing.propertyType)),
-    status: toStringValue(rawListing.status),
-    description: toStringValue(rawListing.description),
-    features: toStringArray(rawListing.features),
-    neighborhood: toStringValue(rawListing.neighborhood),
-    schoolDistrict: toStringValue(rawListing.school_district ?? rawListing.schoolDistrict),
-    photos: toStringArray(rawListing.photos),
-    virtualTourUrl: toStringValue(rawListing.virtual_tour_url ?? rawListing.virtualTourUrl),
-    daysOnMarket: toNumber(rawListing.days_on_market ?? rawListing.daysOnMarket),
+    id: toStringValue(property.id ?? property.listing_id ?? property.listingId),
+    mlsNumber: toStringValue(
+      property.mls_id ?? property.mlsNumber ?? property.mls_number ?? property.listingId
+    ),
+    listingKey: toStringValue(property.listingKey ?? property.listing_key),
+    address: toStringValue(property.address ?? property.unparsedAddress) || "Imported property",
+    city: toStringValue(property.city),
+    state: toStringValue(property.state ?? property.stateOrProvince),
+    zipCode: toStringValue(property.zip_code ?? property.zipCode ?? property.postalCode),
+    listPrice: toNumber(property.price ?? property.list_price ?? property.listPrice ?? property.ListPrice),
+    bedrooms: toNumber(property.bedrooms ?? property.bedroomsTotal ?? property.BedroomsTotal),
+    bathrooms: toNumber(
+      property.bathrooms ??
+        property.bathroomsFull ??
+        property.bathroomsTotalInteger ??
+        property.BathroomsFull
+    ),
+    sqft: toNumber(property.sqft ?? property.livingArea ?? property.LivingArea),
+    lotSize: toNumber(property.lot_size ?? property.lotSize),
+    yearBuilt: toNumber(property.year_built ?? property.yearBuilt ?? property.YearBuilt),
+    propertyType: mapPropertyType(
+      toStringValue(property.property_type ?? property.propertyType ?? property.PropertyType)
+    ),
+    status: toStringValue(property.status ?? property.standardStatus ?? property.StandardStatus),
+    description: toStringValue(
+      property.description ?? property.publicRemarks ?? property.PublicRemarks
+    ),
+    features: toStringArray(property.features ?? property.interiorFeatures ?? property.appliances),
+    neighborhood: toStringValue(property.neighborhood ?? property.subdivisionName),
+    schoolDistrict: toStringValue(property.school_district ?? property.schoolDistrict),
+    photos: Array.from(new Set(derivedPhotos)),
+    virtualTourUrl: toStringValue(
+      property.virtual_tour_url ?? property.virtualTourUrl ?? property.virtualTourURL
+    ),
+    daysOnMarket: toNumber(property.days_on_market ?? property.daysOnMarket),
+    providerSource: toStringValue(rawListing.source),
+    fallbackUsed: toBoolean(rawListing.fallbackUsed),
+    rawPayload: rawListing,
   };
 }
 
@@ -347,6 +407,7 @@ export function mapListingToEventDraft(listing: ImportedListing): EventImportDra
         importedAt: new Date().toISOString(),
         externalId: listing.id,
         mlsNumber: listing.mlsNumber,
+        listingKey: listing.listingKey,
         address: formatAddress(listing.address, listing.city, listing.state, listing.zipCode),
         city: listing.city,
         state: listing.state,
@@ -365,6 +426,9 @@ export function mapListingToEventDraft(listing: ImportedListing): EventImportDra
         virtualTourUrl: listing.virtualTourUrl,
         daysOnMarket: listing.daysOnMarket,
         photos: listing.photos,
+        source: listing.providerSource,
+        fallbackUsed: listing.fallbackUsed,
+        sourcePayload: listing.rawPayload,
       },
       nearbyPoi: buildNearbyPoiContext(listing),
     },
@@ -377,6 +441,12 @@ type ListingLookupResponse = {
   data?: {
     listing?: Record<string, unknown>;
   };
+  listing?: Record<string, unknown>;
+  property?: Record<string, unknown>;
+  media?: Array<Record<string, unknown>>;
+  imageUrls?: string[];
+  source?: string;
+  fallbackUsed?: boolean;
 };
 
 type ListingSearchResponse = {
@@ -404,7 +474,18 @@ export async function importListingByMlsNumber(mlsNumber: string) {
     headers: buildServiceHeaders(config.apiKey),
     cache: "no-store",
   });
-  const listing = payload.data?.listing;
+  const listing =
+    payload.data?.listing ??
+    payload.listing ??
+    (payload.property
+      ? {
+          source: payload.source,
+          fallbackUsed: payload.fallbackUsed,
+          property: payload.property,
+          media: payload.media,
+          imageUrls: payload.imageUrls,
+        }
+      : null);
 
   if (!listing) {
     throw new Error(`Listing ${mlsNumber} was not found`);

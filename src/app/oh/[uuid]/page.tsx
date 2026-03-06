@@ -20,13 +20,14 @@ interface EventInfo {
     startTime: string;
     endTime: string;
     status: string;
-    branding: { logoUrl?: string; primaryColor?: string; tagline?: string } | null;
+    branding: { logoUrl?: string; primaryColor?: string; tagline?: string; flyerImageUrl?: string } | null;
     complianceText: string | null;
     customFields: Array<{ label: string; type: "text" | "select"; options?: string[] }> | null;
     propertyType: string | null;
     bedrooms: number | null;
     bathrooms: string | null;
     sqft: number | null;
+    propertyPhotos: string[] | null;
     propertyDescription: string | null;
     aiQaEnabled: boolean;
 }
@@ -100,6 +101,7 @@ export default function PublicSignInPage({
     };
 
     const primaryColor = event?.branding?.primaryColor || "#10b981";
+    const heroImage = event?.propertyPhotos?.[0] || event?.branding?.flyerImageUrl || null;
 
     if (phase === "loading") {
         return (
@@ -156,6 +158,19 @@ export default function PublicSignInPage({
                 className="px-6 py-8 text-center"
                 style={{ background: `linear-gradient(135deg, ${primaryColor}15, ${primaryColor}05)` }}
             >
+                {heroImage && (
+                    <div className="mx-auto mb-5 max-w-3xl overflow-hidden rounded-[1.75rem] border border-white/60 shadow-xl shadow-emerald-900/10">
+                        <Image
+                            loader={passthroughLoader}
+                            unoptimized
+                            src={heroImage}
+                            alt={event?.propertyAddress || "Property photo"}
+                            width={1440}
+                            height={720}
+                            className="h-52 w-full object-cover sm:h-72"
+                        />
+                    </div>
+                )}
                 {event?.branding?.logoUrl && (
                     <Image
                         loader={passthroughLoader}
@@ -184,6 +199,11 @@ export default function PublicSignInPage({
                 )}
                 {event?.branding?.tagline && (
                     <p className="text-sm text-muted-foreground mt-1">{event.branding.tagline}</p>
+                )}
+                {event?.propertyDescription && (
+                    <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                        {event.propertyDescription}
+                    </p>
                 )}
                 <div className="flex items-center justify-center gap-4 mt-3 text-xs text-muted-foreground">
                     {event?.bedrooms && <span>{event.bedrooms} bed</span>}

@@ -182,7 +182,8 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
           <CardTitle className="text-base sm:text-lg">Start with listing data instead of a blank form</CardTitle>
           <CardDescription className="mt-1 max-w-2xl text-sm leading-relaxed">
             Pull a record from your MLS data service, search by address, or upload a PDF flyer to
-            backfill the event draft and AI Q&A context.
+            backfill the event draft and AI Q&A context. Keep the flyer upload path as a manual
+            fallback whenever the MLS payload is incomplete or unavailable.
           </CardDescription>
         </div>
       </CardHeader>

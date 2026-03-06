@@ -50,6 +50,7 @@ export async function GET(
             bedrooms: events.bedrooms,
             bathrooms: events.bathrooms,
             sqft: events.sqft,
+            propertyPhotos: events.propertyPhotos,
             propertyDescription: events.propertyDescription,
             aiQaEnabled: events.aiQaEnabled,
             userId: events.userId,
@@ -89,6 +90,7 @@ export async function GET(
         bedrooms: event.bedrooms,
         bathrooms: event.bathrooms,
         sqft: event.sqft,
+        propertyPhotos: event.propertyPhotos,
         propertyDescription: event.propertyDescription,
         aiQaEnabled,
     });

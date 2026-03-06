@@ -25,6 +25,18 @@ interface ChatHistory {
     content: string;
 }
 
+function serializeJsonForPrompt(value: unknown, maxChars = 12000): string {
+    try {
+        const serialized = JSON.stringify(value, null, 2);
+        if (serialized.length <= maxChars) {
+            return serialized;
+        }
+        return `${serialized.slice(0, maxChars)}\n... [truncated for length]`;
+    } catch {
+        return String(value);
+    }
+}
+
 /**
  * Build the system prompt with property context (RAG-style).
  */
@@ -55,11 +67,19 @@ Your role is to answer visitor questions about this property, the neighborhood, 
     }
 
     if (context.mlsData && Object.keys(context.mlsData).length > 0) {
-        prompt += `\n\n## Additional MLS Data\n${JSON.stringify(context.mlsData, null, 2)}`;
+        const { sourcePayload, ...restMlsData } = context.mlsData as Record<string, unknown>;
+
+        if (Object.keys(restMlsData).length > 0) {
+            prompt += `\n\n## Additional MLS Data\n${serializeJsonForPrompt(restMlsData, 5000)}`;
+        }
+
+        if (sourcePayload) {
+            prompt += `\n\n## Full MLS Source Payload\nUse this as a source of truth for detailed factual answers when the data is available.\n${serializeJsonForPrompt(sourcePayload, 12000)}`;
+        }
     }
 
     if (context.nearbyPoi && Object.keys(context.nearbyPoi).length > 0) {
-        prompt += `\n\n## Nearby Points of Interest\n${JSON.stringify(context.nearbyPoi, null, 2)}`;
+        prompt += `\n\n## Nearby Points of Interest\n${serializeJsonForPrompt(context.nearbyPoi, 4000)}`;
     }
 
     prompt += `\n\n## Rules
