@@ -1,376 +1,625 @@
 "use client";
 
 import { useState, useEffect, useCallback, use } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    Loader2,
-    ArrowLeft,
-    Users,
-    QrCode,
-    ExternalLink,
-    Copy,
-    Save,
-    Flame,
-    CalendarDays,
-    Download,
-} from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Copy,
+  Download,
+  ExternalLink,
+  Flame,
+  Loader2,
+  QrCode,
+  Save,
+  Users,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EventImportAssistant } from "@/components/event-import-assistant";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  applyImportedDraft,
+  buildEventPayload,
+  createEmptyEventFormState,
+  type EventFormState,
+} from "@/lib/event-form";
+import {
+  openHousePropertyTypes,
+  type EventAiQaContext,
+  type EventImportDraft,
+} from "@/lib/listing-import-shared";
 
 interface SignIn {
-    id: number;
-    fullName: string;
-    phone: string | null;
-    email: string | null;
-    hasAgent: boolean;
-    isPreApproved: string | null;
-    interestLevel: string | null;
-    buyingTimeline: string | null;
-    leadTier: string | null;
-    signedInAt: string;
+  id: number;
+  fullName: string;
+  phone: string | null;
+  email: string | null;
+  hasAgent: boolean;
+  isPreApproved: string | null;
+  interestLevel: string | null;
+  buyingTimeline: string | null;
+  leadTier: string | null;
+  signedInAt: string;
 }
 
 interface EventDetail {
-    id: number;
-    uuid: string;
-    propertyAddress: string;
-    mlsNumber: string | null;
-    listPrice: string | null;
-    propertyDescription: string | null;
-    startTime: string;
-    endTime: string;
-    status: string;
-    totalSignIns: number;
-    hotLeadsCount: number;
-    propertyType: string | null;
-    bedrooms: number | null;
-    bathrooms: string | null;
-    sqft: number | null;
-    complianceText: string | null;
-    signIns: SignIn[];
+  id: number;
+  uuid: string;
+  propertyAddress: string;
+  mlsNumber: string | null;
+  listPrice: string | null;
+  propertyDescription: string | null;
+  startTime: string;
+  endTime: string;
+  status: string;
+  totalSignIns: number;
+  hotLeadsCount: number;
+  propertyType: string | null;
+  bedrooms: number | null;
+  bathrooms: string | null;
+  sqft: number | null;
+  yearBuilt: number | null;
+  complianceText: string | null;
+  propertyPhotos: string[] | null;
+  aiQaContext: EventAiQaContext | null;
+  signIns: SignIn[];
 }
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-    draft: { label: "Draft", className: "bg-gray-500/10 text-gray-400 border-gray-500/30" },
-    active: { label: "Active", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" },
-    completed: { label: "Completed", className: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
-    cancelled: { label: "Cancelled", className: "bg-red-500/10 text-red-400 border-red-500/30" },
+  draft: { label: "Draft", className: "bg-gray-500/10 text-gray-400 border-gray-500/30" },
+  active: { label: "Active", className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" },
+  completed: { label: "Completed", className: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
+  cancelled: { label: "Cancelled", className: "bg-red-500/10 text-red-400 border-red-500/30" },
 };
 
 const INTEREST_BADGE: Record<string, { label: string; className: string }> = {
-    very: { label: "🔥 Hot", className: "bg-orange-500/10 text-orange-400 border-orange-500/30" },
-    somewhat: { label: "⚡ Warm", className: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" },
-    just_looking: { label: "👀 Looking", className: "bg-gray-500/10 text-gray-400 border-gray-500/30" },
+  very: { label: "Hot", className: "bg-orange-500/10 text-orange-400 border-orange-500/30" },
+  somewhat: { label: "Warm", className: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" },
+  just_looking: { label: "Looking", className: "bg-gray-500/10 text-gray-400 border-gray-500/30" },
 };
 
+function formatPropertyTypeLabel(value: string) {
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function buildFormFromEvent(event: EventDetail): EventFormState {
+  const mlsData = event.aiQaContext?.mlsData;
+  const importedSource = typeof mlsData?.importedSource === "string" ? mlsData.importedSource : null;
+  const importedHeadline = typeof mlsData?.address === "string" ? mlsData.address : event.propertyAddress;
+  const importedSubheadline = [
+    typeof mlsData?.city === "string" ? mlsData.city : null,
+    typeof mlsData?.state === "string" ? mlsData.state : null,
+    typeof mlsData?.schoolDistrict === "string" ? mlsData.schoolDistrict : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return {
+    ...createEmptyEventFormState(),
+    propertyAddress: event.propertyAddress || "",
+    mlsNumber: event.mlsNumber || "",
+    listPrice: event.listPrice || "",
+    propertyDescription: event.propertyDescription || "",
+    complianceText: event.complianceText || "",
+    startTime: event.startTime ? format(new Date(event.startTime), "yyyy-MM-dd'T'HH:mm") : "",
+    endTime: event.endTime ? format(new Date(event.endTime), "yyyy-MM-dd'T'HH:mm") : "",
+    status: event.status,
+    propertyType: (event.propertyType as EventFormState["propertyType"]) || "",
+    bedrooms: event.bedrooms !== null && event.bedrooms !== undefined ? String(event.bedrooms) : "",
+    bathrooms: event.bathrooms || "",
+    sqft: event.sqft !== null && event.sqft !== undefined ? String(event.sqft) : "",
+    yearBuilt: event.yearBuilt !== null && event.yearBuilt !== undefined ? String(event.yearBuilt) : "",
+    propertyPhotos: event.propertyPhotos || [],
+    aiQaContext: event.aiQaContext,
+    importSummary: importedSource
+      ? {
+          source: importedSource === "address" || importedSource === "flyer" ? importedSource : "mls",
+          headline: importedHeadline,
+          subheadline: importedSubheadline,
+          badges: [
+            event.mlsNumber ? `MLS ${event.mlsNumber}` : null,
+            event.listPrice ? `$${Number(event.listPrice).toLocaleString()}` : null,
+            event.propertyPhotos?.length ? `${event.propertyPhotos.length} photos` : null,
+          ].filter((item): item is string => Boolean(item)),
+        }
+      : null,
+  };
+}
+
 export default function EventDetailPage({
-    params,
+  params,
 }: {
-    params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
 }) {
-    const { id } = use(params);
-    const [event, setEvent] = useState<EventDetail | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [editing, setEditing] = useState(false);
+  const { id } = use(params);
+  const [event, setEvent] = useState<EventDetail | null>(null);
+  const [form, setForm] = useState<EventFormState>(() => createEmptyEventFormState());
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
 
-    // Edit form
-    const [address, setAddress] = useState("");
-    const [mlsNumber, setMlsNumber] = useState("");
-    const [listPrice, setListPrice] = useState("");
-    const [description, setDescription] = useState("");
-    const [complianceText, setComplianceText] = useState("");
-    const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("");
-    const [status, setStatus] = useState("");
-
-    const fetchEvent = useCallback(async () => {
-        try {
-            const res = await fetch(`/api/events/${id}`);
-            if (res.ok) {
-                const data = await res.json();
-                setEvent(data);
-                setAddress(data.propertyAddress);
-                setMlsNumber(data.mlsNumber || "");
-                setListPrice(data.listPrice || "");
-                setDescription(data.propertyDescription || "");
-                setComplianceText(data.complianceText || "");
-                setStartTime(data.startTime ? format(new Date(data.startTime), "yyyy-MM-dd'T'HH:mm") : "");
-                setEndTime(data.endTime ? format(new Date(data.endTime), "yyyy-MM-dd'T'HH:mm") : "");
-                setStatus(data.status);
-            }
-        } catch {
-            toast.error("Failed to load event");
-        } finally {
-            setLoading(false);
-        }
-    }, [id]);
-
-    useEffect(() => { fetchEvent(); }, [fetchEvent]);
-
-    const handleSave = async () => {
-        setSaving(true);
-        try {
-            const res = await fetch(`/api/events/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    propertyAddress: address,
-                    mlsNumber: mlsNumber || null,
-                    listPrice: listPrice || null,
-                    propertyDescription: description || null,
-                    complianceText: complianceText || null,
-                    startTime: new Date(startTime).toISOString(),
-                    endTime: new Date(endTime).toISOString(),
-                    status,
-                }),
-            });
-            if (res.ok) {
-                toast.success("Event updated");
-                setEditing(false);
-                fetchEvent();
-            }
-        } catch {
-            toast.error("Failed to save");
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleCopyLink = () => {
-        if (!event) return;
-        navigator.clipboard.writeText(`${window.location.origin}/oh/${event.uuid}`);
-        toast.success("Sign-in link copied!");
-    };
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
-            </div>
-        );
+  const fetchEvent = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/events/${id}`);
+      if (res.ok) {
+        const data = (await res.json()) as EventDetail;
+        setEvent(data);
+        setForm(buildFormFromEvent(data));
+      }
+    } catch {
+      toast.error("Failed to load event");
+    } finally {
+      setLoading(false);
     }
+  }, [id]);
 
-    if (!event) {
-        return <div className="text-center py-20"><p className="text-muted-foreground">Event not found</p></div>;
+  useEffect(() => {
+    fetchEvent();
+  }, [fetchEvent]);
+
+  const updateForm = <K extends keyof EventFormState>(field: K, value: EventFormState[K]) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleApplyDraft = (draft: EventImportDraft) => {
+    setForm((current) => applyImportedDraft(current, draft));
+  };
+
+  const handleCancel = () => {
+    if (event) {
+      setForm(buildFormFromEvent(event));
     }
+    setEditing(false);
+  };
 
-    const signIns = event.signIns || [];
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/events/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildEventPayload(form)),
+      });
 
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save event");
+      }
+
+      toast.success("Event updated");
+      setEditing(false);
+      fetchEvent();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (!event) return;
+    navigator.clipboard.writeText(`${window.location.origin}/oh/${event.uuid}`);
+    toast.success("Sign-in link copied");
+  };
+
+  if (loading) {
     return (
-        <div className="space-y-6 max-w-4xl">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Link href="/dashboard/events">
-                        <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold">{event.propertyAddress}</h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <Badge className={STATUS_BADGE[event.status]?.className || ""}>
-                                {STATUS_BADGE[event.status]?.label || event.status}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                                {format(new Date(event.startTime), "MMM d, yyyy h:mm a")}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handleCopyLink}>
-                        <Copy className="mr-2 h-4 w-4" />Copy Link
-                    </Button>
-                    <Link href={`/oh/${event.uuid}`} target="_blank">
-                        <Button variant="outline" size="sm"><ExternalLink className="mr-2 h-4 w-4" />Sign-in Page</Button>
-                    </Link>
-                    <Link href={`/oh/${event.uuid}/kiosk`} target="_blank">
-                        <Button variant="outline" size="sm"><QrCode className="mr-2 h-4 w-4" />Kiosk</Button>
-                    </Link>
-                </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
-                <Card>
-                    <CardContent className="p-4 flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-                            <Users className="h-5 w-5 text-emerald-400" />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-bold">{signIns.length}</div>
-                            <div className="text-xs text-muted-foreground">Sign-ins</div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4 flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10">
-                            <Flame className="h-5 w-5 text-orange-400" />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-bold">
-                                {signIns.filter((s) => s.interestLevel === "very").length}
-                            </div>
-                            <div className="text-xs text-muted-foreground">Hot Leads</div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="p-4 flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                            <CalendarDays className="h-5 w-5 text-blue-400" />
-                        </div>
-                        <div>
-                            <div className="text-2xl font-bold">
-                                {signIns.filter((s) => s.isPreApproved === "yes").length}
-                            </div>
-                            <div className="text-xs text-muted-foreground">Pre-Approved</div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Edit / View Event Details */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-base">Event Details</CardTitle>
-                    {editing ? (
-                        <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
-                            <Button size="sm" onClick={handleSave} disabled={saving} className="bg-emerald-500 hover:bg-emerald-600 text-white">
-                                {saving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                                <Save className="mr-2 h-3 w-3" /> Save
-                            </Button>
-                        </div>
-                    ) : (
-                        <Button variant="outline" size="sm" onClick={() => setEditing(true)}>Edit</Button>
-                    )}
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {editing ? (
-                        <>
-                            <div className="space-y-2">
-                                <Label>Address</Label>
-                                <Input value={address} onChange={(e) => setAddress(e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>MLS #</Label>
-                                    <Input value={mlsNumber} onChange={(e) => setMlsNumber(e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>List Price</Label>
-                                    <Input value={listPrice} onChange={(e) => setListPrice(e.target.value)} />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Start Time</Label>
-                                    <Input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>End Time</Label>
-                                    <Input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Status</Label>
-                                <Select value={status} onValueChange={setStatus}>
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="draft">Draft</SelectItem>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="completed">Completed</SelectItem>
-                                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Description</Label>
-                                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Compliance Text</Label>
-                                <Textarea value={complianceText} onChange={(e) => setComplianceText(e.target.value)} rows={2} />
-                            </div>
-                        </>
-                    ) : (
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div><span className="text-muted-foreground">MLS #:</span> {event.mlsNumber || "—"}</div>
-                            <div><span className="text-muted-foreground">Price:</span> {event.listPrice ? `$${Number(event.listPrice).toLocaleString()}` : "—"}</div>
-                            <div><span className="text-muted-foreground">Type:</span> {event.propertyType || "—"}</div>
-                            <div><span className="text-muted-foreground">Beds/Baths:</span> {event.bedrooms || "—"}/{event.bathrooms || "—"}</div>
-                            <div><span className="text-muted-foreground">Sqft:</span> {event.sqft?.toLocaleString() || "—"}</div>
-                            <div><span className="text-muted-foreground">Status:</span> {event.status}</div>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Sign-ins Table */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-base">Sign-ins ({signIns.length})</CardTitle>
-                    <div className="flex gap-2">
-                        <Link href={`/dashboard/events/${id}/report`}>
-                            <Button variant="outline" size="sm">Seller Report</Button>
-                        </Link>
-                        <Button variant="outline" size="sm" onClick={() => window.open(`/api/events/${id}/export/csv`)}>
-                            <Download className="mr-2 h-4 w-4" />CSV
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {signIns.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-8">
-                            No sign-ins yet. Share the sign-in link or start Kiosk mode.
-                        </p>
-                    ) : (
-                        <div className="space-y-2">
-                            {signIns.map((s) => (
-                                <div key={s.id} className="flex items-center justify-between p-3 rounded-lg border border-border/40 hover:border-emerald-500/20 transition-colors">
-                                    <div>
-                                        <p className="font-medium text-sm">{s.fullName}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {[s.phone, s.email].filter(Boolean).join(" · ")}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        {s.interestLevel && INTEREST_BADGE[s.interestLevel] && (
-                                            <Badge className={INTEREST_BADGE[s.interestLevel].className + " text-xs"}>
-                                                {INTEREST_BADGE[s.interestLevel].label}
-                                            </Badge>
-                                        )}
-                                        {s.isPreApproved === "yes" && (
-                                            <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30 text-xs">Pre-Approved</Badge>
-                                        )}
-                                        {!s.hasAgent && (
-                                            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">No Agent</Badge>
-                                        )}
-                                        <span className="text-xs text-muted-foreground ml-2">
-                                            {s.signedInAt ? format(new Date(s.signedInAt), "h:mm a") : ""}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
+      </div>
     );
+  }
+
+  if (!event) {
+    return (
+      <div className="py-20 text-center">
+        <p className="text-muted-foreground">Event not found</p>
+      </div>
+    );
+  }
+
+  const signIns = event.signIns || [];
+  const importedSource = form.importSummary?.source || "manual";
+  const importedPhotoCount = form.propertyPhotos.length;
+  const importedFaqCount = form.aiQaContext?.customFaq?.length ?? 0;
+
+  return (
+    <div className="max-w-5xl space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/events">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold">{event.propertyAddress}</h1>
+            <div className="mt-1 flex items-center gap-2">
+              <Badge className={STATUS_BADGE[event.status]?.className || ""}>
+                {STATUS_BADGE[event.status]?.label || event.status}
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                {format(new Date(event.startTime), "MMM d, yyyy h:mm a")}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleCopyLink}>
+            <Copy className="mr-2 h-4 w-4" />Copy Link
+          </Button>
+          <Link href={`/oh/${event.uuid}`} target="_blank">
+            <Button variant="outline" size="sm">
+              <ExternalLink className="mr-2 h-4 w-4" />Sign-in Page
+            </Button>
+          </Link>
+          <Link href={`/oh/${event.uuid}/kiosk`} target="_blank">
+            <Button variant="outline" size="sm">
+              <QrCode className="mr-2 h-4 w-4" />Kiosk
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
+              <Users className="h-5 w-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{signIns.length}</div>
+              <div className="text-xs text-muted-foreground">Sign-ins</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10">
+              <Flame className="h-5 w-5 text-orange-400" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold">
+                {signIns.filter((signIn) => signIn.interestLevel === "very").length}
+              </div>
+              <div className="text-xs text-muted-foreground">Hot leads</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
+              <CalendarDays className="h-5 w-5 text-blue-400" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{importedFaqCount}</div>
+              <div className="text-xs text-muted-foreground">AI FAQ pairs ready</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Event Details</CardTitle>
+          {editing ? (
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-emerald-500 text-white hover:bg-emerald-600"
+              >
+                {saving ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Save className="mr-2 h-3 w-3" />}
+                Save
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+              Edit
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {editing ? (
+            <>
+              <EventImportAssistant onApplyDraft={handleApplyDraft} />
+
+              <div className="grid gap-6 lg:grid-cols-[1.45fr_0.95fr]">
+                <div className="space-y-5 rounded-3xl border border-border/60 bg-background/80 p-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-address">Address</Label>
+                    <Input
+                      id="edit-address"
+                      value={form.propertyAddress}
+                      onChange={(event) => updateForm("propertyAddress", event.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-mls">MLS #</Label>
+                      <Input
+                        id="edit-mls"
+                        value={form.mlsNumber}
+                        onChange={(event) => updateForm("mlsNumber", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-price">List Price</Label>
+                      <Input
+                        id="edit-price"
+                        value={form.listPrice}
+                        onChange={(event) => updateForm("listPrice", event.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="space-y-2 xl:col-span-1">
+                      <Label htmlFor="edit-property-type">Property type</Label>
+                      <Select
+                        value={form.propertyType || "none"}
+                        onValueChange={(value) =>
+                          updateForm(
+                            "propertyType",
+                            value === "none" ? "" : (value as EventFormState["propertyType"])
+                          )
+                        }
+                      >
+                        <SelectTrigger id="edit-property-type">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Not set</SelectItem>
+                          {openHousePropertyTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {formatPropertyTypeLabel(type)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-beds">Beds</Label>
+                      <Input
+                        id="edit-beds"
+                        value={form.bedrooms}
+                        onChange={(event) => updateForm("bedrooms", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-baths">Baths</Label>
+                      <Input
+                        id="edit-baths"
+                        value={form.bathrooms}
+                        onChange={(event) => updateForm("bathrooms", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-sqft">Sqft</Label>
+                      <Input
+                        id="edit-sqft"
+                        value={form.sqft}
+                        onChange={(event) => updateForm("sqft", event.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-year-built">Year built</Label>
+                      <Input
+                        id="edit-year-built"
+                        value={form.yearBuilt}
+                        onChange={(event) => updateForm("yearBuilt", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-status">Status</Label>
+                      <Select value={form.status} onValueChange={(value) => updateForm("status", value)}>
+                        <SelectTrigger id="edit-status">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-start">Start time</Label>
+                      <Input
+                        id="edit-start"
+                        type="datetime-local"
+                        value={form.startTime}
+                        onChange={(event) => updateForm("startTime", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-end">End time</Label>
+                      <Input
+                        id="edit-end"
+                        type="datetime-local"
+                        value={form.endTime}
+                        onChange={(event) => updateForm("endTime", event.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-description">Description</Label>
+                    <Textarea
+                      id="edit-description"
+                      value={form.propertyDescription}
+                      onChange={(event) => updateForm("propertyDescription", event.target.value)}
+                      rows={5}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-compliance">Compliance Text</Label>
+                    <Textarea
+                      id="edit-compliance"
+                      value={form.complianceText}
+                      onChange={(event) => updateForm("complianceText", event.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 rounded-3xl border border-border/60 bg-muted/[0.18] p-5">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Import snapshot</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Imported data is stored on the event record so future Q&A and reports use the same listing facts.
+                    </p>
+                  </div>
+
+                  <div className="rounded-3xl border border-border/60 bg-background/85 p-4 text-sm text-muted-foreground">
+                    <p>
+                      Source: <span className="font-medium text-foreground">{importedSource}</span>
+                    </p>
+                    <p className="mt-2">
+                      Photos: <span className="font-medium text-foreground">{importedPhotoCount}</span>
+                    </p>
+                    <p className="mt-2">
+                      AI FAQ pairs: <span className="font-medium text-foreground">{importedFaqCount}</span>
+                    </p>
+                    {form.importSummary?.headline ? (
+                      <p className="mt-3 text-xs leading-relaxed">{form.importSummary.headline}</p>
+                    ) : (
+                      <p className="mt-3 text-xs leading-relaxed">
+                        No import snapshot yet. You can still backfill the record from MLS, address search, or a PDF flyer.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">MLS #:</span> {event.mlsNumber || "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Price:</span>{" "}
+                  {event.listPrice ? `$${Number(event.listPrice).toLocaleString()}` : "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Type:</span> {event.propertyType ? formatPropertyTypeLabel(event.propertyType) : "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Beds/Baths:</span> {event.bedrooms || "—"}/{event.bathrooms || "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Sqft:</span> {event.sqft?.toLocaleString() || "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Year built:</span> {event.yearBuilt || "—"}
+                </div>
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">Description:</span> {event.propertyDescription || "—"}
+                </div>
+                {event.complianceText ? (
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">Compliance:</span> {event.complianceText}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="rounded-3xl border border-border/60 bg-muted/[0.18] p-4 text-sm text-muted-foreground">
+                <p>
+                  Import source: <span className="font-medium text-foreground">{importedSource}</span>
+                </p>
+                <p className="mt-2">
+                  Stored photos: <span className="font-medium text-foreground">{importedPhotoCount}</span>
+                </p>
+                <p className="mt-2">
+                  AI FAQ pairs: <span className="font-medium text-foreground">{importedFaqCount}</span>
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Sign-ins ({signIns.length})</CardTitle>
+          <div className="flex gap-2">
+            <Link href={`/dashboard/events/${id}/report`}>
+              <Button variant="outline" size="sm">Seller Report</Button>
+            </Link>
+            <Button variant="outline" size="sm" onClick={() => window.open(`/api/events/${id}/export/csv`)}>
+              <Download className="mr-2 h-4 w-4" />CSV
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {signIns.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              No sign-ins yet. Share the sign-in link or start kiosk mode.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {signIns.map((signIn) => (
+                <div
+                  key={signIn.id}
+                  className="flex items-center justify-between rounded-lg border border-border/40 p-3 transition-colors hover:border-emerald-500/20"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{signIn.fullName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {[signIn.phone, signIn.email].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {signIn.interestLevel && INTEREST_BADGE[signIn.interestLevel] ? (
+                      <Badge className={`${INTEREST_BADGE[signIn.interestLevel].className} text-xs`}>
+                        {INTEREST_BADGE[signIn.interestLevel].label}
+                      </Badge>
+                    ) : null}
+                    {signIn.isPreApproved === "yes" ? (
+                      <Badge className="border-blue-500/30 bg-blue-500/10 text-xs text-blue-400">
+                        Pre-Approved
+                      </Badge>
+                    ) : null}
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(signIn.signedInAt), "h:mm a")}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

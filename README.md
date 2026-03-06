@@ -10,6 +10,7 @@ OpenHouse is a Google-authenticated, AI-native open house operations platform fo
 - Azure OpenAI for scoring, follow-up generation, and property Q&A
 - Stripe Checkout + Billing Portal for Pro subscriptions
 - Resend for transactional follow-up email delivery
+- External listing data service for MLS and address-based property import
 
 ## Local Development
 
@@ -84,6 +85,35 @@ AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 PDL_API_KEY=...
 ```
 
+### Listing Import
+
+OpenHouse can prefill a new event from a listing service using three flows:
+
+- `Import by MLS #`
+- `Import by Address`
+- `Upload Flyer / PDF`
+
+Configure the listing service adapter with:
+
+```bash
+LISTING_DATA_API_URL=https://your-listing-service.example.com
+LISTING_DATA_API_KEY=...
+```
+
+The default adapter expects:
+
+- `GET /api/v1/listings/mls/:mlsId`
+- `POST /api/v1/search`
+
+If your service uses different paths, override them:
+
+```bash
+LISTING_DATA_MLS_LOOKUP_PATH=/custom/mls/:mlsId
+LISTING_DATA_ADDRESS_SEARCH_PATH=/custom/search
+```
+
+The adapter sends both `X-API-Key` and `Authorization: Bearer ...` headers for compatibility with existing internal services.
+
 ### Transactional Email
 
 ```bash
@@ -135,3 +165,4 @@ https://openhouse.kevv.ai/api/billing/webhook
 - Stripe webhooks control subscription state and Pro entitlements.
 - Public property Q&A and sign-in endpoints include baseline request throttling.
 - AI and PDL features degrade safely if their environment variables are missing.
+- Listing import gracefully degrades if `LISTING_DATA_API_URL` or `LISTING_DATA_API_KEY` is missing.

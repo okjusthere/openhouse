@@ -45,6 +45,21 @@ const createEventSchema = z.object({
         })
         .optional(),
     complianceText: z.string().optional(),
+    propertyPhotos: z.array(z.string()).optional(),
+    aiQaContext: z
+        .object({
+            customFaq: z
+                .array(
+                    z.object({
+                        question: z.string(),
+                        answer: z.string(),
+                    })
+                )
+                .optional(),
+            mlsData: z.record(z.string(), z.unknown()).optional(),
+            nearbyPoi: z.record(z.string(), z.unknown()).optional(),
+        })
+        .optional(),
     status: z.enum(["draft", "active", "completed", "cancelled"]).optional(),
 });
 
@@ -106,6 +121,8 @@ export async function POST(request: NextRequest) {
             customFields: data.customFields || null,
             branding: data.branding || null,
             complianceText: data.complianceText || null,
+            propertyPhotos: data.propertyPhotos || null,
+            aiQaContext: data.aiQaContext || null,
             status: data.status || "draft",
             aiQaEnabled: false,
             totalSignIns: 0,

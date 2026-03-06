@@ -2,9 +2,13 @@
  * Azure OpenAI client singleton.
  */
 
+type ChatMessageContentPart =
+    | { type: "text"; text: string }
+    | { type: "image_url"; image_url: { url: string } };
+
 interface ChatMessage {
     role: "system" | "user" | "assistant";
-    content: string;
+    content: string | ChatMessageContentPart[];
 }
 
 interface ChatCompletionOptions {
@@ -72,8 +76,42 @@ export async function chatCompletion(options: ChatCompletionOptions): Promise<{
             ? data.usage.prompt_tokens + data.usage.completion_tokens
             : 0);
 
+    const responseContent = choice?.message?.content;
+
+    if (typeof responseContent === "string") {
+        return {
+            content: responseContent,
+            tokensUsed,
+        };
+    }
+
+    if (Array.isArray(responseContent)) {
+        const textContent = responseContent
+            .map((item: unknown) => {
+                if (
+                    item &&
+                    typeof item === "object" &&
+                    "type" in item &&
+                    item.type === "text" &&
+                    "text" in item &&
+                    typeof item.text === "string"
+                ) {
+                    return item.text;
+                }
+
+                return "";
+            })
+            .join("\n")
+            .trim();
+
+        return {
+            content: textContent,
+            tokensUsed,
+        };
+    }
+
     return {
-        content: choice?.message?.content || "",
+        content: "",
         tokensUsed,
     };
 }

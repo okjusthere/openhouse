@@ -16,6 +16,7 @@ type BillingStatus = {
   aiConfigured: boolean;
   pdlConfigured: boolean;
   emailConfigured: boolean;
+  listingImportConfigured: boolean;
   eventsUsed: number;
   signInsUsed: number;
   pdlUsed: number;
@@ -165,6 +166,11 @@ export default function SettingsPage() {
                   label: "Transactional Email",
                   configured: billingStatus.emailConfigured,
                   detail: "Required to send follow-up emails instead of saving drafts only",
+                },
+                {
+                  label: "Listing Data Service",
+                  configured: billingStatus.listingImportConfigured,
+                  detail: "Required for Import by MLS # and Import by Address event backfill",
                 },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between gap-4">

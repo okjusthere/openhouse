@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { getBillingSnapshot } from "@/lib/billing";
 import { hasAiConfiguration } from "@/lib/ai/openai";
 import { isEmailConfigured } from "@/lib/email";
+import { isListingImportConfigured } from "@/lib/listing-import";
 
 export async function GET() {
   const session = await auth();
@@ -23,6 +24,7 @@ export async function GET() {
     aiConfigured: hasAiConfiguration(),
     pdlConfigured: Boolean(process.env.PDL_API_KEY),
     emailConfigured: isEmailConfigured(),
+    listingImportConfigured: isListingImportConfigured(),
     googleAuthConfigured: Boolean(
       (process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID) &&
         (process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_CLIENT_SECRET)
