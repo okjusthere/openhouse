@@ -1,22 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Onest, Fraunces } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/site";
 import { brand } from "@/lib/brand";
-
-const onest = Onest({
-  subsets: ["latin"],
-  variable: "--font-onest",
-  display: "swap",
-});
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  display: "swap",
-});
 
 const siteUrl = getSiteUrl();
 
@@ -113,7 +100,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`scroll-smooth ${onest.variable} ${fraunces.variable}`}>
+    <html lang="en" className="scroll-smooth">
       <body className="font-sans antialiased">
         <Providers>{children}</Providers>
         <Toaster />

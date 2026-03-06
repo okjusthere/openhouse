@@ -2,7 +2,7 @@
  * Edge-safe auth gate for dashboard routes.
  *
  * Important: do not import "@/lib/auth" in middleware, because that module
- * depends on mysql2/bcrypt and is not compatible with the Edge runtime.
+ * depends on Node-only database code and is not compatible with the Edge runtime.
  */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";

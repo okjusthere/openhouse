@@ -9,6 +9,10 @@ import { events, signIns, users } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { processSignInWithAi } from "@/lib/ai/process-signin";
+import { PLAN_LIMITS } from "@/lib/plans";
+import { countSignInsThisMonth, ensureUsageWindow, normalizePlanTier } from "@/lib/billing";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { hasAiConfiguration } from "@/lib/ai/openai";
 
 const signInSchema = z.object({
     fullName: z.string().min(1, "Name is required"),
@@ -48,6 +52,7 @@ export async function GET(
             sqft: events.sqft,
             propertyDescription: events.propertyDescription,
             aiQaEnabled: events.aiQaEnabled,
+            userId: events.userId,
         })
         .from(events)
         .where(eq(events.uuid, uuid))
@@ -57,7 +62,36 @@ export async function GET(
         return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    return NextResponse.json(event);
+    const [owner] = await db
+        .select({
+            subscriptionTier: users.subscriptionTier,
+        })
+        .from(users)
+        .where(eq(users.id, event.userId))
+        .limit(1);
+
+    const aiQaEnabled =
+        event.aiQaEnabled &&
+        owner?.subscriptionTier === "pro" &&
+        hasAiConfiguration();
+
+    return NextResponse.json({
+        uuid: event.uuid,
+        propertyAddress: event.propertyAddress,
+        listPrice: event.listPrice,
+        startTime: event.startTime,
+        endTime: event.endTime,
+        status: event.status,
+        branding: event.branding,
+        complianceText: event.complianceText,
+        customFields: event.customFields,
+        propertyType: event.propertyType,
+        bedrooms: event.bedrooms,
+        bathrooms: event.bathrooms,
+        sqft: event.sqft,
+        propertyDescription: event.propertyDescription,
+        aiQaEnabled,
+    });
 }
 
 export async function POST(
@@ -85,7 +119,14 @@ export async function POST(
         );
     }
 
-    const [owner] = await db
+    if (event.status !== "active") {
+        return NextResponse.json(
+            { error: "This open house is not currently accepting sign-ins" },
+            { status: 400 }
+        );
+    }
+
+    const [ownerRecord] = await db
         .select({
             id: users.id,
             subscriptionTier: users.subscriptionTier,
@@ -94,13 +135,44 @@ export async function POST(
         .where(eq(users.id, event.userId))
         .limit(1);
 
+    if (!ownerRecord) {
+        return NextResponse.json({ error: "Event owner not found" }, { status: 404 });
+    }
+
+    const owner = await ensureUsageWindow(ownerRecord.id);
+
     if (!owner) {
         return NextResponse.json({ error: "Event owner not found" }, { status: 404 });
+    }
+
+    const rateLimitResult = checkRateLimit({
+        key: `public-signin:${uuid}:${getClientIp(request.headers)}`,
+        limit: 12,
+        windowMs: 10 * 60 * 1000,
+    });
+
+    if (!rateLimitResult.ok) {
+        return NextResponse.json(
+            { error: "Too many sign-in attempts. Please try again shortly." },
+            { status: 429 }
+        );
     }
 
     try {
         const body = await request.json();
         const data = signInSchema.parse(body);
+        const tier = normalizePlanTier(owner.subscriptionTier);
+
+        if (tier === "free") {
+            const signInsUsed = await countSignInsThisMonth(owner.id);
+
+            if (signInsUsed >= PLAN_LIMITS.free.maxSignInsPerMonth) {
+                return NextResponse.json(
+                    { error: "This account has reached its monthly Free sign-in limit." },
+                    { status: 403 }
+                );
+            }
+        }
 
         // Create sign-in record
         const [result] = await db.insert(signIns).values({
@@ -126,13 +198,13 @@ export async function POST(
             .where(eq(events.id, event.id));
 
         // AI-native flow: automatically process scoring/enrichment for Pro owners.
-        if (owner.subscriptionTier === "pro") {
+        if (tier === "pro") {
             try {
                 await processSignInWithAi({
                     eventId: event.id,
                     signInId: Number(result.insertId),
                     userId: owner.id,
-                    subscriptionTier: owner.subscriptionTier,
+                    subscriptionTier: tier,
                 });
             } catch (processingError) {
                 // Sign-in itself should still succeed even if AI processing fails.
@@ -144,7 +216,7 @@ export async function POST(
             {
                 signInId: result.insertId,
                 success: true,
-                aiProcessed: owner.subscriptionTier === "pro",
+                aiProcessed: tier === "pro",
             },
             { status: 201 }
         );

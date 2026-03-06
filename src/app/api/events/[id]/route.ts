@@ -9,6 +9,8 @@ import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { events, signIns } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { normalizePlanTier } from "@/lib/billing";
+import { hasAiConfiguration } from "@/lib/ai/openai";
 
 export async function GET(
     _request: NextRequest,
@@ -74,6 +76,21 @@ export async function PUT(
     }
 
     const body = await request.json();
+    const tier = normalizePlanTier(session.user.subscriptionTier);
+
+    if ((body.aiQaEnabled === true || body.aiQaContext !== undefined) && tier !== "pro") {
+        return NextResponse.json(
+            { error: "AI property Q&A requires the Pro plan" },
+            { status: 403 }
+        );
+    }
+
+    if (body.aiQaEnabled === true && !hasAiConfiguration()) {
+        return NextResponse.json(
+            { error: "AI is not configured for this environment" },
+            { status: 400 }
+        );
+    }
 
     // Build update object — only update provided fields
     const updateData: Record<string, unknown> = {};

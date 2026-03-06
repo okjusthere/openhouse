@@ -14,8 +14,10 @@
         "AZURE_OPENAI_DEPLOYMENT": "@openhouse-azure-deployment",
         "PDL_API_KEY": "@openhouse-pdl-key",
         "STRIPE_SECRET_KEY": "@openhouse-stripe-secret",
-        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@openhouse-stripe-pub",
-        "STRIPE_WEBHOOK_SECRET": "@openhouse-stripe-webhook"
+        "STRIPE_WEBHOOK_SECRET": "@openhouse-stripe-webhook",
+        "STRIPE_PRO_PRICE_ID": "@openhouse-stripe-pro-price-id",
+        "RESEND_API_KEY": "@openhouse-resend-key",
+        "RESEND_FROM_EMAIL": "@openhouse-resend-from"
     },
     "headers": [
         {

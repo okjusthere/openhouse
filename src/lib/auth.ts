@@ -1,14 +1,13 @@
 /**
  * NextAuth.js v5 configuration for OpenHouse Pro.
- * Supports Email + Password and Google OAuth.
+ * Supports Google OAuth only.
  */
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import Credentials from "next-auth/providers/credentials";
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { getPlanEntitlements, getNextMonthBoundary } from "@/lib/billing";
 
 const googleClientId = process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret =
@@ -24,44 +23,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 }),
             ]
             : []),
-        Credentials({
-            name: "credentials",
-            credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" },
-            },
-            async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) return null;
-
-                const db = getDb();
-                const [user] = await db
-                    .select()
-                    .from(users)
-                    .where(eq(users.email, credentials.email as string))
-                    .limit(1);
-
-                if (!user || !user.passwordHash) return null;
-
-                const isValid = await bcrypt.compare(
-                    credentials.password as string,
-                    user.passwordHash
-                );
-
-                if (!isValid) return null;
-
-                return {
-                    id: String(user.id),
-                    email: user.email,
-                    name: user.fullName,
-                    image: user.avatarUrl,
-                };
-            },
-        }),
     ],
     callbacks: {
         async signIn({ user, account }) {
             if (account?.provider === "google") {
                 const db = getDb();
+                const freeEntitlements = getPlanEntitlements("free");
                 const [existing] = await db
                     .select()
                     .from(users)
@@ -75,29 +42,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         fullName: user.name || "Agent",
                         avatarUrl: user.image || null,
                         googleId: account.providerAccountId,
-                        subscriptionTier: "free",
+                        ...freeEntitlements,
                         pdlCreditsUsed: 0,
-                        pdlCreditsLimit: 0,
                         aiQueriesUsed: 0,
-                        aiQueriesLimit: 0,
+                        usageResetAt: getNextMonthBoundary(),
                     });
-                } else if (!existing.googleId) {
-                    // Link Google account to existing user
+                } else {
                     await db
                         .update(users)
-                        .set({ googleId: account.providerAccountId })
+                        .set({
+                            googleId: existing.googleId || account.providerAccountId,
+                            avatarUrl: user.image || existing.avatarUrl,
+                            fullName: existing.fullName || user.name || "Agent",
+                            usageResetAt: existing.usageResetAt || getNextMonthBoundary(),
+                        })
                         .where(eq(users.id, existing.id));
                 }
             }
             return true;
         },
         async jwt({ token, user }) {
-            if (user) {
+            const email = user?.email || token.email;
+
+            if (email) {
                 const db = getDb();
                 const [dbUser] = await db
                     .select()
                     .from(users)
-                    .where(eq(users.email, user.email!))
+                    .where(eq(users.email, email))
                     .limit(1);
 
                 if (dbUser) {
@@ -118,7 +90,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     pages: {
         signIn: "/login",
-        newUser: "/register",
     },
     session: {
         strategy: "jwt",

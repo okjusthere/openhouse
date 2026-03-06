@@ -51,7 +51,6 @@ export {
     PLAN_LIMITS,
     isPro,
     hasPdlCredits,
-    getPdlOverageCost,
 } from "@/lib/plans";
 
 export type { PlanTier } from "@/lib/plans";

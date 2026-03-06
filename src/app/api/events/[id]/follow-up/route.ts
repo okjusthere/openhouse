@@ -10,6 +10,7 @@ import { eq, and } from "drizzle-orm";
 import { generateFollowUpEmail } from "@/lib/ai/follow-up";
 import { isPro } from "@/lib/plans";
 import type { LeadScore } from "@/lib/ai/lead-scoring";
+import { isEmailConfigured, sendTransactionalEmail } from "@/lib/email";
 
 export async function POST(
     request: NextRequest,
@@ -43,7 +44,10 @@ export async function POST(
 
     // Get agent info
     const [agent] = await db
-        .select()
+        .select({
+            fullName: users.fullName,
+            email: users.email,
+        })
         .from(users)
         .where(eq(users.id, Number(session.user.id)))
         .limit(1);
@@ -54,6 +58,7 @@ export async function POST(
         : await db.select().from(signIns).where(and(eq(signIns.eventId, Number(id)), eq(signIns.followUpSent, false)));
 
     const results = [];
+    const canSendEmail = isEmailConfigured();
 
     for (const signIn of signInsToProcess) {
         if (!signIn.email) continue; // Skip if no email
@@ -73,12 +78,21 @@ export async function POST(
                 pdlData: signIn.pdlData as Record<string, unknown> | null,
             });
 
-            // Save the generated content
+            if (canSendEmail) {
+                await sendTransactionalEmail({
+                    to: signIn.email,
+                    subject: result.subject,
+                    text: result.body,
+                    replyTo: agent?.email,
+                });
+            }
+
             await db
                 .update(signIns)
                 .set({
                     followUpContent: JSON.stringify({ subject: result.subject, body: result.body }),
-                    followUpSent: false, // Will be set true when actually sent via email
+                    followUpSent: canSendEmail,
+                    followUpSentAt: canSendEmail ? new Date() : null,
                 })
                 .where(eq(signIns.id, signIn.id));
 
@@ -88,6 +102,7 @@ export async function POST(
                 email: signIn.email,
                 subject: result.subject,
                 body: result.body,
+                deliveryStatus: canSendEmail ? "sent" : "draft",
             });
         } catch (error) {
             console.error(`[FollowUp] Error for ${signIn.fullName}:`, error);
@@ -99,5 +114,9 @@ export async function POST(
         }
     }
 
-    return NextResponse.json({ results, count: results.length });
+    return NextResponse.json({
+        results,
+        count: results.length,
+        deliveryMode: canSendEmail ? "sent" : "draft",
+    });
 }

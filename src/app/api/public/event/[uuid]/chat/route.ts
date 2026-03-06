@@ -14,8 +14,10 @@ import {
 } from "@/lib/db/schema";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { chatWithProperty } from "@/lib/ai/property-qa";
-import { getAiDeploymentName } from "@/lib/ai/openai";
+import { getAiDeploymentName, hasAiConfiguration } from "@/lib/ai/openai";
 import { randomUUID } from "crypto";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { ensureUsageWindow } from "@/lib/billing";
 
 type EligibleContext =
     | { ok: true; event: Event; owner: User }
@@ -59,6 +61,16 @@ async function loadEligibleContext(uuid: string): Promise<EligibleContext> {
         return {
             ok: false,
             response: NextResponse.json({ error: "AI Q&A requires Pro plan" }, { status: 403 }),
+        };
+    }
+
+    if (!hasAiConfiguration()) {
+        return {
+            ok: false,
+            response: NextResponse.json(
+                { error: "AI Q&A is not configured for this environment" },
+                { status: 503 }
+            ),
         };
     }
 
@@ -117,9 +129,34 @@ export async function POST(
     const db = getDb();
     const context = await loadEligibleContext(uuid);
     if (!context.ok) return context.response;
-    const { event, owner } = context;
+    const { event } = context;
+    const owner = await ensureUsageWindow(context.owner.id);
 
-    if (owner.aiQueriesLimit > 0 && owner.aiQueriesUsed >= owner.aiQueriesLimit) {
+    if (!owner) {
+        return NextResponse.json({ error: "Event owner not found" }, { status: 404 });
+    }
+
+    const rateLimitResult = checkRateLimit({
+        key: `public-chat:${uuid}:${getClientIp(request.headers)}`,
+        limit: 30,
+        windowMs: 10 * 60 * 1000,
+    });
+
+    if (!rateLimitResult.ok) {
+        return NextResponse.json(
+            { error: "Too many AI messages. Please try again shortly." },
+            { status: 429 }
+        );
+    }
+
+    if (owner.aiQueriesLimit <= 0) {
+        return NextResponse.json(
+            { error: "AI usage is not provisioned for this account" },
+            { status: 403 }
+        );
+    }
+
+    if (owner.aiQueriesUsed >= owner.aiQueriesLimit) {
         return NextResponse.json({ error: "AI query limit reached" }, { status: 429 });
     }
 

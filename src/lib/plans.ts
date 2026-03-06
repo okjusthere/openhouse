@@ -18,15 +18,14 @@ export const PLAN_LIMITS = {
     pro: {
         maxEventsPerMonth: Infinity,
         maxSignInsPerMonth: Infinity,
-        pdlCredits: 100,           // 100 per month included
-        aiQueries: 500,            // 500 AI Q&A messages per month
+        pdlCredits: 100,
+        aiQueries: 500,
         aiLeadScoring: true,
         aiFollowUp: true,
         aiPropertyQa: true,
         csvExport: true,
         sellerReport: "detailed" as const,
         crmIntegration: "zapier_api" as const,
-        pdlOverageRate: 0.30,      // $0.30 per extra PDL call
     },
 } as const;
 
@@ -44,17 +43,4 @@ export function isPro(tier: string): boolean {
  */
 export function hasPdlCredits(used: number, limit: number): boolean {
     return used < limit;
-}
-
-/**
- * Calculate PDL overage cost.
- */
-export function getPdlOverageCost(
-    used: number,
-    limit: number,
-    tier: PlanTier
-): number {
-    if (tier === "free") return 0;
-    const overage = Math.max(0, used - limit);
-    return overage * PLAN_LIMITS[tier].pdlOverageRate;
 }

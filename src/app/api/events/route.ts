@@ -10,6 +10,8 @@ import { events } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { z } from "zod";
+import { countEventsThisMonth, normalizePlanTier } from "@/lib/billing";
+import { PLAN_LIMITS } from "@/lib/plans";
 
 const createEventSchema = z.object({
     propertyAddress: z.string().min(1, "Property address is required"),
@@ -74,6 +76,18 @@ export async function POST(request: NextRequest) {
 
         const db = getDb();
         const uuid = randomUUID();
+        const tier = normalizePlanTier(session.user.subscriptionTier);
+
+        if (tier === "free") {
+            const eventsUsed = await countEventsThisMonth(Number(session.user.id));
+
+            if (eventsUsed >= PLAN_LIMITS.free.maxEventsPerMonth) {
+                return NextResponse.json(
+                    { error: "Free plan includes up to 3 open houses per month. Upgrade to Pro to add more." },
+                    { status: 403 }
+                );
+            }
+        }
 
         const [result] = await db.insert(events).values({
             uuid,

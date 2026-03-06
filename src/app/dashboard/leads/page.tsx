@@ -159,11 +159,19 @@ export default function LeadsPage() {
                 body: JSON.stringify({ signInId }),
             });
             if (res.ok) {
-                toast.success("Follow-up email generated!");
+                const data = await res.json();
+                if (data.deliveryMode === "sent") {
+                    toast.success("Follow-up email sent");
+                } else {
+                    toast.success("Follow-up draft generated");
+                }
                 fetchLeads();
+            } else {
+                const err = await res.json();
+                toast.error(err.error || "Follow-up failed");
             }
         } catch {
-            toast.error("Failed to generate follow-up");
+            toast.error("Failed to send follow-up");
         }
     };
 

@@ -237,7 +237,7 @@ export default function LandingPage() {
                 Sign In
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/login?mode=new">
               <Button
                 size="sm"
                 className="rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 px-4 text-[13px] font-medium text-white shadow-sm hover:from-emerald-600 hover:to-teal-700"
@@ -273,7 +273,7 @@ export default function LandingPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/register">
+              <Link href="/login?mode=new">
                 <Button
                   size="lg"
                   className="h-12 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 px-7 text-white shadow-md shadow-emerald-900/10 transition-all hover:from-emerald-600 hover:to-teal-700 hover:shadow-lg"
@@ -635,7 +635,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
 
-                <Link href="/register" className="mt-6 block">
+                <Link href="/login?mode=new" className="mt-6 block">
                   <Button
                     className={`w-full rounded-full ${plan.highlighted
                       ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-900/10 hover:from-emerald-600 hover:to-teal-700"
@@ -652,8 +652,8 @@ export default function LandingPage() {
           </div>
 
           <p className="mt-6 text-sm text-muted-foreground">
-            Pro includes 100 PDL enrichments monthly. Additional enrichment usage is billed at $0.30
-            per lookup.
+            Pro includes 100 PDL enrichments and 500 property Q&A messages monthly. Usage is hard
+            capped to the plan allowance unless you add a higher-tier package later.
           </p>
         </section>
 

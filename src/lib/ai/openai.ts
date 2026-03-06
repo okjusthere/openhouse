@@ -20,6 +20,10 @@ export function getAiDeploymentName() {
     return process.env.AZURE_OPENAI_DEPLOYMENT || DEFAULT_AZURE_DEPLOYMENT;
 }
 
+export function hasAiConfiguration() {
+    return Boolean(process.env.AZURE_OPENAI_ENDPOINT && process.env.AZURE_OPENAI_API_KEY);
+}
+
 export async function chatCompletion(options: ChatCompletionOptions): Promise<{
     content: string;
     tokensUsed: number;

@@ -202,8 +202,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </div>
                             <p className="text-xs text-muted-foreground">
                                 {isPro
-                                    ? "AI scoring, enrichment, and advanced workflows enabled."
-                                    : "Upgrade to Pro for AI scoring and automated follow-up sequences."}
+                                    ? "Billing-backed AI scoring, enrichment, and outbound workflows enabled."
+                                    : "Upgrade to Pro for AI scoring, outbound follow-up, and property Q&A."}
                             </p>
                             {!isPro && (
                                 <Link href="/dashboard/settings" className="mt-3 block">
@@ -271,8 +271,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                                 </p>
                                                 <p className="mt-1 text-xs text-muted-foreground">
                                                     {isPro
-                                                        ? "Advanced AI and reporting tools are enabled."
-                                                        : "Upgrade to Pro for AI scoring and advanced automation."}
+                                                        ? "Advanced AI, billing, and reporting tools are enabled."
+                                                        : "Upgrade to Pro for AI scoring, follow-up delivery, and advanced automation."}
                                                 </p>
                                             </div>
                                             <Button

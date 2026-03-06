@@ -1,13 +1,15 @@
 /**
  * People Data Lab enrichment service with caching.
- * 
+ *
  * - Pro tier: 100 credits/month included
- * - Overage: $0.30 per additional lookup
+ * - Hard capped at the monthly entitlement
  * - Cache: 90-day TTL to avoid duplicate API calls
  */
 import { getDb } from "@/lib/db";
 import { pdlCache, users } from "@/lib/db/schema";
 import { eq, and, gt } from "drizzle-orm";
+import { ensureUsageWindow } from "@/lib/billing";
+import { hasPdlCredits } from "@/lib/plans";
 
 const PDL_API_URL = "https://api.peopledatalabs.com/v5/person/enrich";
 const CACHE_TTL_DAYS = 90;
@@ -57,18 +59,17 @@ export async function enrichContact(
     }
 
     // 2. Check user's credit balance
-    const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
+    const user = await ensureUsageWindow(userId);
 
     if (!user) {
         return { found: false, data: null, cached: false, creditUsed: false };
     }
 
-    // Free tier has 0 credits
-    if (user.pdlCreditsLimit === 0) {
+    if (user.pdlCreditsLimit <= 0) {
+        return { found: false, data: null, cached: false, creditUsed: false };
+    }
+
+    if (!hasPdlCredits(user.pdlCreditsUsed, user.pdlCreditsLimit)) {
         return { found: false, data: null, cached: false, creditUsed: false };
     }
 
@@ -173,15 +174,11 @@ export async function getPdlUsage(userId: number) {
     if (!user) return null;
 
     const remaining = Math.max(0, user.limit - user.used);
-    const overageCount = Math.max(0, user.used - user.limit);
-    const overageCost = overageCount * 0.30;
 
     return {
         used: user.used,
         limit: user.limit,
         remaining,
-        overageCount,
-        overageCost,
         resetAt: user.resetAt,
     };
 }
