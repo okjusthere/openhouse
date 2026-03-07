@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   Plus,
@@ -12,7 +13,6 @@ import {
   Download,
   ExternalLink,
   Trash2,
-  Pencil,
   Flame,
   Loader2,
   FileText,
@@ -95,6 +95,7 @@ function formatPropertyTypeLabel(value: string) {
 }
 
 export default function EventsPage() {
+  const router = useRouter();
   const [events, setEvents] = useState<OHEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -186,6 +187,25 @@ export default function EventsPage() {
     const url = `${window.location.origin}/oh/${uuid}`;
     navigator.clipboard.writeText(url);
     toast.success("Sign-in link copied");
+  };
+
+  const handleDownloadQr = async (event: OHEvent) => {
+    try {
+      const res = await fetch(`/api/events/${event.id}/qr`);
+      if (!res.ok) {
+        throw new Error("Unable to generate QR code");
+      }
+      const shareKit = (await res.json()) as { qrDataUrl: string };
+      const link = document.createElement("a");
+      link.href = shareKit.qrDataUrl;
+      link.download = `${event.propertyAddress
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/^-|-$/g, "")
+        .toLowerCase()}-qr.png`;
+      link.click();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to download QR code");
+    }
   };
 
   const handleStatusChange = async (id: number, status: string) => {
@@ -634,9 +654,13 @@ export default function EventsPage() {
       ) : (
         <div className="grid gap-4">
           {filteredEvents.map((event) => (
-            <Card key={event.id} className="border-border/50 transition-colors hover:border-emerald-500/20">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
+            <Card
+              key={event.id}
+              className="cursor-pointer border-border/50 transition-all hover:border-emerald-500/20 hover:shadow-md hover:shadow-emerald-950/5"
+              onClick={() => router.push(`/dashboard/events/${event.id}`)}
+            >
+              <CardContent className="space-y-4 p-5">
+                <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex items-center gap-3">
                       <h3 className="truncate text-base font-semibold">{event.propertyAddress}</h3>
@@ -652,7 +676,7 @@ export default function EventsPage() {
                     </div>
                   </div>
 
-                  <div className="mr-4 flex items-center gap-6">
+                  <div className="mr-2 flex items-center gap-6">
                     <div className="text-center">
                       <div className="flex items-center gap-1 text-lg font-bold">
                         <Users className="h-4 w-4 text-emerald-400" />
@@ -671,40 +695,16 @@ export default function EventsPage() {
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={(event) => event.stopPropagation()}
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => handleCopyLink(event.uuid)}>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy Sign-in Link
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/oh/${event.uuid}`} target="_blank">
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          Open Sign-in Page
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/oh/${event.uuid}/kiosk`} target="_blank">
-                          <QrCode className="mr-2 h-4 w-4" />
-                          Kiosk Mode
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/events/${event.id}`}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          View Details
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/events/${event.id}/report`}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          Seller Report
-                        </Link>
-                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => window.open(`/api/events/${event.id}/export/csv`)}>
                         <Download className="mr-2 h-4 w-4" />
                         Export CSV
@@ -726,6 +726,41 @@ export default function EventsPage() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </div>
+
+                <div
+                  className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-4"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <Button variant="outline" size="sm" onClick={() => handleCopyLink(event.uuid)}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy Link
+                  </Button>
+                  <Link href={`/oh/${event.uuid}`} target="_blank">
+                    <Button variant="outline" size="sm">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Open Link
+                    </Button>
+                  </Link>
+                  <Button variant="outline" size="sm" onClick={() => handleDownloadQr(event)}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download QR
+                  </Button>
+                  <Link href={`/oh/${event.uuid}/kiosk`} target="_blank">
+                    <Button variant="outline" size="sm">
+                      <QrCode className="mr-2 h-4 w-4" />
+                      Kiosk
+                    </Button>
+                  </Link>
+                  <Link href={`/dashboard/events/${event.id}/report`}>
+                    <Button variant="outline" size="sm">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Seller Report
+                    </Button>
+                  </Link>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    Click anywhere else on the card for details
+                  </span>
                 </div>
               </CardContent>
             </Card>
