@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CreditCard, Sparkles, Star, Check, Loader2, Mail } from "lucide-react";
+import { hasUnlimitedAiQueries } from "@/lib/plans";
 
 type BillingStatus = {
   tier: "free" | "pro";
@@ -500,11 +501,18 @@ export default function SettingsPage() {
                   <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">AI Q&A usage</p>
                   <p className="mt-2 text-lg font-semibold">
                     {billingStatus.aiQueriesUsed}
-                    {billingStatus.aiQueriesLimit > 0 && (
+                    {!hasUnlimitedAiQueries(billingStatus.aiQueriesLimit) && billingStatus.aiQueriesLimit > 0 && (
                       <span className="ml-1 text-sm font-normal text-muted-foreground">
                         / {billingStatus.aiQueriesLimit}
                       </span>
                     )}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {hasUnlimitedAiQueries(billingStatus.aiQueriesLimit)
+                      ? "Unlimited on Pro"
+                      : billingStatus.aiQueriesLimit > 0
+                        ? `${billingStatus.aiQueriesLimit.toLocaleString()} included monthly`
+                        : "AI Q&A unlocks on Pro"}
                   </p>
                 </div>
               </div>
@@ -525,7 +533,7 @@ export default function SettingsPage() {
                       <Check className="h-3 w-3 text-emerald-500" /> AI lead scoring
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Check className="h-3 w-3 text-emerald-500" /> 500 AI Q&A / month
+                      <Check className="h-3 w-3 text-emerald-500" /> Unlimited AI Q&A
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Check className="h-3 w-3 text-emerald-500" /> Gmail direct send + fallback

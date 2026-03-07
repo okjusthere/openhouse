@@ -197,7 +197,7 @@ const PRICING = [
     features: [
       "Unlimited sign-ins and AI workflows",
       "AI lead scoring + next-step recommendations",
-      "Sign-in-gated property Q&A (500 messages / month)",
+      "Unlimited sign-in-gated property Q&A",
       "AI follow-up with Gmail direct send or Resend fallback",
       "Reusable listing inquiry links with capture attribution",
       "Detailed seller reporting and share kit",
@@ -205,6 +205,19 @@ const PRICING = [
     cta: "Start Pro",
     highlighted: true,
   },
+];
+
+const PRICING_MATRIX = [
+  { capability: "Listing launches", free: "Unlimited", pro: "Unlimited" },
+  { capability: "Monthly captures", free: "150 / month", pro: "Unlimited" },
+  { capability: "MLS, address, or flyer import", free: "Included", pro: "Included" },
+  { capability: "Branded share page, QR, and kiosk", free: "Included", pro: "Included" },
+  { capability: "Reusable long-tail inquiry link", free: "Included", pro: "Included + attribution" },
+  { capability: "Seller report", free: "Preview + CSV", pro: "Detailed narrative + share kit" },
+  { capability: "AI lead scoring", free: "—", pro: "Included" },
+  { capability: "Property Q&A after sign-in", free: "—", pro: "Unlimited" },
+  { capability: "AI follow-up", free: "—", pro: "Included" },
+  { capability: "Gmail direct send", free: "—", pro: "Included" },
 ];
 
 const FAQ = [
@@ -718,6 +731,64 @@ export default function LandingPage() {
                 </Link>
               </article>
             ))}
+          </div>
+
+          <div className="mt-8 overflow-x-auto rounded-[32px] border border-border/50 bg-card/70 shadow-lg shadow-emerald-950/[0.04]">
+            <div className="min-w-[780px]">
+              <div className="grid grid-cols-[1.05fr_0.7fr_0.85fr] gap-4 border-b border-border/40 bg-gradient-to-r from-muted/30 via-background/70 to-emerald-500/[0.06] px-5 py-5 md:px-7">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    Capability
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Most sign-in tools stop at capture. This is where Free and Pro actually diverge.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/50 bg-background/80 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    Free
+                  </p>
+                  <p className="mt-2 text-xl font-semibold">Launch and prove the workflow</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Best for agents who want a real listing page, QR sign-in, and seller-report basics before buying automation.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/[0.14] via-background/95 to-teal-500/[0.08] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                        Pro
+                      </p>
+                      <p className="mt-2 text-xl font-semibold">$29/mo automation layer</p>
+                    </div>
+                    <Badge className="rounded-full border-emerald-500/30 bg-emerald-500/12 text-emerald-700">
+                      Best fit
+                    </Badge>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    For teams that want AI qualification, automated follow-up, and seller attribution to compound after the event.
+                  </p>
+                </div>
+              </div>
+              <div className="divide-y divide-border/40">
+                {PRICING_MATRIX.map((row) => (
+                  <div
+                    key={row.capability}
+                    className="grid grid-cols-[1.05fr_0.7fr_0.85fr] gap-4 px-5 py-4 text-sm md:px-7"
+                  >
+                    <div className="flex items-center">
+                      <p className="font-medium text-foreground">{row.capability}</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/50 bg-background/80 px-4 py-3 text-muted-foreground">
+                      {row.free}
+                    </div>
+                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] px-4 py-3 font-medium text-emerald-700">
+                      {row.pro}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <p className="mt-6 text-sm text-muted-foreground">

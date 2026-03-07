@@ -19,6 +19,7 @@ import { randomUUID } from "crypto";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { ensureUsageWindow } from "@/lib/billing";
 import { hasPublicChatAccessCookie } from "@/lib/public-chat-access";
+import { hasUnlimitedAiQueries } from "@/lib/plans";
 
 type EligibleContext =
     | { ok: true; event: Event; owner: User }
@@ -160,14 +161,16 @@ export async function POST(
         );
     }
 
-    if (owner.aiQueriesLimit <= 0) {
+    const unlimitedAiQueries = hasUnlimitedAiQueries(owner.aiQueriesLimit);
+
+    if (owner.aiQueriesLimit === 0) {
         return NextResponse.json(
             { error: "AI usage is not provisioned for this account" },
             { status: 403 }
         );
     }
 
-    if (owner.aiQueriesUsed >= owner.aiQueriesLimit) {
+    if (!unlimitedAiQueries && owner.aiQueriesUsed >= owner.aiQueriesLimit) {
         return NextResponse.json({ error: "AI query limit reached" }, { status: 429 });
     }
 

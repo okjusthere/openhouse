@@ -21,7 +21,7 @@ export const PLAN_LIMITS = {
         maxEventsPerMonth: null,
         maxSignInsPerMonth: null,
         pdlCredits: 0,
-        aiQueries: 500,
+        aiQueries: -1,
         aiLeadScoring: true,
         aiFollowUp: true,
         aiPropertyQa: true,
@@ -42,6 +42,10 @@ export function isPro(tier: string): boolean {
 
 export function hasUsageCap(limit: UsageCap): limit is number {
     return typeof limit === "number" && Number.isFinite(limit);
+}
+
+export function hasUnlimitedAiQueries(limit: number): boolean {
+    return limit < 0;
 }
 
 /**
