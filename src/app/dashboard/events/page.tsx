@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
 import {
+  CalendarDays,
   Plus,
   QrCode,
   Users,
-  CalendarDays,
   MoreHorizontal,
   Copy,
   Download,
@@ -494,10 +493,7 @@ export default function EventsPage() {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <CalendarDays className="h-3.5 w-3.5" />
-                        {format(new Date(event.startTime), "MMM d, yyyy h:mm a")}
-                      </span>
+                      <span>Reusable sign-in link</span>
                       {event.mlsNumber ? <span>MLS# {event.mlsNumber}</span> : null}
                       {event.listPrice ? <span>${Number(event.listPrice).toLocaleString()}</span> : null}
                     </div>

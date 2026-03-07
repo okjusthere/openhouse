@@ -63,6 +63,12 @@ const flyerExtractionSchema = z.object({
   nearby_poi: z.record(z.string(), z.unknown()).optional(),
 });
 
+const marketingCopySchema = z.object({
+  headline: z.string().nullable().optional(),
+  summary: z.string().nullable().optional(),
+  highlights: z.array(z.string()).max(5).optional(),
+});
+
 function getListingImportConfig() {
   const usesBboAlias = Boolean(process.env.BBO_BASE_URL || process.env.BBO_API_KEY);
   const baseUrl =
@@ -388,6 +394,101 @@ function toDraftSummary(listing: ImportedListing): EventImportDraft["importSumma
   };
 }
 
+function buildFallbackMarketingCopy(listing: ImportedListing) {
+  const location = listing.neighborhood || listing.city || listing.address;
+  const statLine = [
+    listing.bedrooms ? `${listing.bedrooms}-bed` : null,
+    listing.bathrooms ? `${listing.bathrooms}-bath` : null,
+    listing.sqft ? `${listing.sqft.toLocaleString()} sqft` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const propertyType =
+    listing.propertyType?.replace(/_/g, " ") || "home";
+  const summary =
+    listing.description?.replace(/\s+/g, " ").trim().slice(0, 260) ||
+    `Explore a ${propertyType} in ${location} with polished open-house-ready details.`;
+
+  return {
+    headline: statLine
+      ? `${statLine} ${propertyType} in ${location}`
+      : `${propertyType.charAt(0).toUpperCase() + propertyType.slice(1)} in ${location}`,
+    summary,
+    highlights: Array.from(new Set(listing.features.filter(Boolean))).slice(0, 4),
+  };
+}
+
+async function generateMarketingCopy(listing: ImportedListing) {
+  const fallback = buildFallbackMarketingCopy(listing);
+
+  if (!hasAiConfiguration()) {
+    return fallback;
+  }
+
+  const facts = {
+    address: formatAddress(listing.address, listing.city, listing.state, listing.zipCode),
+    listPrice: listing.listPrice,
+    propertyType: listing.propertyType,
+    bedrooms: listing.bedrooms,
+    bathrooms: listing.bathrooms,
+    sqft: listing.sqft,
+    yearBuilt: listing.yearBuilt,
+    status: listing.status,
+    neighborhood: listing.neighborhood,
+    schoolDistrict: listing.schoolDistrict,
+    features: listing.features.slice(0, 10),
+    description: listing.description,
+  };
+
+  try {
+    const result = await chatCompletion({
+      messages: [
+        {
+          role: "user",
+          content: `Write polished marketing copy for a public open-house sign-in page.\n\nReturn JSON only with:\n- headline: max 90 characters\n- summary: max 260 characters\n- highlights: array of 3 to 4 short bullets\n\nRules:\n- Sound credible, polished, and North American residential real-estate appropriate.\n- Do not invent facts.\n- Avoid raw MLS jargon, all-caps, and awkward abbreviations.\n- Avoid fair-housing sensitive language.\n- Focus on layout, light, flow, upgrades, convenience, and practical buyer value.\n\nListing facts:\n${JSON.stringify(facts, null, 2)}`,
+        },
+      ],
+      maxTokens: 420,
+      temperature: 0.4,
+      responseFormat: "json",
+    });
+
+    const parsed = marketingCopySchema.parse(JSON.parse(result.content));
+
+    return {
+      headline: parsed.headline?.trim() || fallback.headline,
+      summary: parsed.summary?.trim() || fallback.summary,
+      highlights:
+        parsed.highlights?.map((item) => item.trim()).filter(Boolean).slice(0, 4) ||
+        fallback.highlights,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+async function withMarketingCopy(
+  draft: EventImportDraft,
+  listing: ImportedListing
+): Promise<EventImportDraft> {
+  const marketing = await generateMarketingCopy(listing);
+
+  return {
+    ...draft,
+    aiQaContext: {
+      ...(draft.aiQaContext ?? {}),
+      customFaq: draft.aiQaContext?.customFaq,
+      nearbyPoi: draft.aiQaContext?.nearbyPoi,
+      mlsData: {
+        ...(draft.aiQaContext?.mlsData ?? {}),
+        marketingHeadline: marketing.headline,
+        marketingSummary: marketing.summary,
+        marketingHighlights: marketing.highlights,
+      },
+    },
+  };
+}
+
 export function mapListingToEventDraft(listing: ImportedListing): EventImportDraft {
   return {
     propertyAddress: formatAddress(listing.address, listing.city, listing.state, listing.zipCode),
@@ -491,7 +592,8 @@ export async function importListingByMlsNumber(mlsNumber: string) {
     throw new Error(`Listing ${mlsNumber} was not found`);
   }
 
-  return mapListingToEventDraft(normalizeImportedListing(listing, "mls"));
+  const normalized = normalizeImportedListing(listing, "mls");
+  return withMarketingCopy(mapListingToEventDraft(normalized), normalized);
 }
 
 export async function searchListingsByAddress(query: string) {
@@ -645,7 +747,7 @@ export async function importListingFromFlyer(
   const faq = extracted.faq?.slice(0, 4);
   const nearbyPoi = extracted.nearby_poi;
 
-  return {
+  return withMarketingCopy({
     ...draft,
     aiQaContext: {
       customFaq: faq && faq.length > 0 ? faq : draft.aiQaContext?.customFaq,
@@ -660,5 +762,5 @@ export async function importListingFromFlyer(
           ? nearbyPoi
           : draft.aiQaContext?.nearbyPoi,
     },
-  } satisfies EventImportDraft;
+  } satisfies EventImportDraft, listing);
 }

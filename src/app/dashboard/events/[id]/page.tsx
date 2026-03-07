@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Flame,
   Loader2,
+  Printer,
   QrCode,
   Save,
   Users,
@@ -41,6 +42,7 @@ import {
   type EventAiQaContext,
   type EventImportDraft,
 } from "@/lib/listing-import-shared";
+import Image from "next/image";
 
 interface SignIn {
   id: number;
@@ -76,6 +78,12 @@ interface EventDetail {
   propertyPhotos: string[] | null;
   aiQaContext: EventAiQaContext | null;
   signIns: SignIn[];
+}
+
+interface ShareKit {
+  qrDataUrl: string;
+  signInUrl: string;
+  eventUuid: string;
 }
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
@@ -153,6 +161,8 @@ export default function EventDetailPage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [shareKit, setShareKit] = useState<ShareKit | null>(null);
+  const [shareKitLoading, setShareKitLoading] = useState(true);
 
   const fetchEvent = useCallback(async () => {
     try {
@@ -172,6 +182,38 @@ export default function EventDetailPage({
   useEffect(() => {
     fetchEvent();
   }, [fetchEvent]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchShareKit() {
+      try {
+        const res = await fetch(`/api/events/${id}/qr`);
+        if (!res.ok) {
+          throw new Error("Failed to load share kit");
+        }
+
+        const data = (await res.json()) as ShareKit;
+        if (!cancelled) {
+          setShareKit(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setShareKit(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setShareKitLoading(false);
+        }
+      }
+    }
+
+    fetchShareKit();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const updateForm = <K extends keyof EventFormState>(field: K, value: EventFormState[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -213,9 +255,56 @@ export default function EventDetailPage({
   };
 
   const handleCopyLink = () => {
-    if (!event) return;
-    navigator.clipboard.writeText(`${window.location.origin}/oh/${event.uuid}`);
+    const url = shareKit?.signInUrl || (event ? `${window.location.origin}/oh/${event.uuid}` : null);
+    if (!url) return;
+    navigator.clipboard.writeText(url);
     toast.success("Sign-in link copied");
+  };
+
+  const handleDownloadQr = () => {
+    if (!shareKit || !event) return;
+    const link = document.createElement("a");
+    link.href = shareKit.qrDataUrl;
+    link.download = `${event.propertyAddress.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase()}-qr.png`;
+    link.click();
+  };
+
+  const handlePrintQr = () => {
+    if (!shareKit || !event) return;
+    const printWindow = window.open("", "_blank", "noopener,noreferrer,width=840,height=1100");
+    if (!printWindow) {
+      toast.error("Unable to open print preview");
+      return;
+    }
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${event.propertyAddress} QR</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 32px; color: #111827; }
+            .sheet { max-width: 720px; margin: 0 auto; text-align: center; }
+            .kicker { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #6b7280; }
+            h1 { margin: 12px 0; font-size: 28px; line-height: 1.2; }
+            .sub { margin-bottom: 24px; color: #4b5563; }
+            img { width: 320px; height: 320px; object-fit: contain; }
+            .url { margin-top: 18px; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 16px; font-size: 14px; word-break: break-all; }
+          </style>
+        </head>
+        <body>
+          <div class="sheet">
+            <div class="kicker">Open House Sign-In</div>
+            <h1>${event.propertyAddress}</h1>
+            <div class="sub">Scan to open the sign-in page on your phone.</div>
+            <img src="${shareKit.qrDataUrl}" alt="QR code" />
+            <div class="url">${shareKit.signInUrl}</div>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   };
 
   if (loading) {
@@ -254,9 +343,7 @@ export default function EventDetailPage({
               <Badge className={STATUS_BADGE[event.status]?.className || ""}>
                 {STATUS_BADGE[event.status]?.label || event.status}
               </Badge>
-              <span className="text-sm text-muted-foreground">
-                {format(new Date(event.startTime), "MMM d, yyyy h:mm a")}
-              </span>
+              <span className="text-sm text-muted-foreground">Reusable sign-in link</span>
             </div>
           </div>
         </div>
@@ -314,6 +401,67 @@ export default function EventDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-base">Share Kit</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Use the direct sign-in link or print the QR for flyers, table tents, and door signage.
+            </p>
+          </div>
+          <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
+            Guest-facing
+          </Badge>
+        </CardHeader>
+        <CardContent>
+          {shareKitLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Building QR share kit...
+            </div>
+          ) : !shareKit ? (
+            <p className="text-sm text-muted-foreground">Unable to load the QR share kit right now.</p>
+          ) : (
+            <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="space-y-4">
+                <div className="rounded-3xl border border-border/60 bg-background/70 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Share link</p>
+                  <p className="mt-2 break-all text-sm text-foreground/90">{shareKit.signInUrl}</p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="outline" onClick={handleCopyLink}>
+                    <Copy className="mr-2 h-4 w-4" /> Copy Link
+                  </Button>
+                  <Link href={shareKit.signInUrl} target="_blank">
+                    <Button variant="outline">
+                      <ExternalLink className="mr-2 h-4 w-4" /> Open Page
+                    </Button>
+                  </Link>
+                  <Button variant="outline" onClick={handleDownloadQr}>
+                    <Download className="mr-2 h-4 w-4" /> Download QR
+                  </Button>
+                  <Button variant="outline" onClick={handlePrintQr}>
+                    <Printer className="mr-2 h-4 w-4" /> Print
+                  </Button>
+                </div>
+              </div>
+              <div className="flex justify-center lg:justify-end">
+                <div className="rounded-[2rem] border border-border/60 bg-white p-5 shadow-xl shadow-emerald-950/5">
+                  <Image
+                    src={shareKit.qrDataUrl}
+                    alt="Open House QR code"
+                    width={280}
+                    height={280}
+                    unoptimized
+                    className="h-64 w-64 rounded-2xl"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

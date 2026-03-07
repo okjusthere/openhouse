@@ -18,6 +18,7 @@ import { getAiDeploymentName, hasAiConfiguration } from "@/lib/ai/openai";
 import { randomUUID } from "crypto";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { ensureUsageWindow } from "@/lib/billing";
+import { hasPublicChatAccessCookie } from "@/lib/public-chat-access";
 
 type EligibleContext =
     | { ok: true; event: Event; owner: User }
@@ -25,7 +26,7 @@ type EligibleContext =
 
 type ChatHistoryItem = { role: "user" | "assistant"; content: string };
 
-async function loadEligibleContext(uuid: string): Promise<EligibleContext> {
+async function loadEligibleContext(request: NextRequest, uuid: string): Promise<EligibleContext> {
     const db = getDb();
 
     const [event] = await db
@@ -74,6 +75,16 @@ async function loadEligibleContext(uuid: string): Promise<EligibleContext> {
         };
     }
 
+    if (!hasPublicChatAccessCookie(request.cookies, uuid)) {
+        return {
+            ok: false,
+            response: NextResponse.json(
+                { error: "Sign in first to unlock AI Q&A for this home" },
+                { status: 403 }
+            ),
+        };
+    }
+
     return { ok: true, event, owner };
 }
 
@@ -113,7 +124,7 @@ export async function GET(
         return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
     }
 
-    const context = await loadEligibleContext(uuid);
+    const context = await loadEligibleContext(request, uuid);
     if (!context.ok) return context.response;
 
     const messages = await loadPersistedHistory(context.event.id, sessionId);
@@ -127,7 +138,7 @@ export async function POST(
 ) {
     const { uuid } = await params;
     const db = getDb();
-    const context = await loadEligibleContext(uuid);
+    const context = await loadEligibleContext(request, uuid);
     if (!context.ok) return context.response;
     const { event } = context;
     const owner = await ensureUsageWindow(context.owner.id);

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 interface EventInfo {
     propertyAddress: string;
     aiQaEnabled: boolean;
+    chatUnlocked: boolean;
     branding: { primaryColor?: string } | null;
 }
 
@@ -55,6 +56,11 @@ export default function PublicPropertyChatPage({
     }, [uuid]);
 
     useEffect(() => {
+        if (!event?.chatUnlocked) {
+            setLoadingHistory(false);
+            return;
+        }
+
         const existingSessionId = window.localStorage.getItem(sessionStorageKey);
         if (!existingSessionId) {
             setLoadingHistory(false);
@@ -85,7 +91,7 @@ export default function PublicPropertyChatPage({
             .finally(() => {
                 setLoadingHistory(false);
             });
-    }, [sessionStorageKey, uuid]);
+    }, [event?.chatUnlocked, sessionStorageKey, uuid]);
 
     async function handleSend(eventForm: FormEvent) {
         eventForm.preventDefault();
@@ -163,6 +169,26 @@ export default function PublicPropertyChatPage({
                     <CardContent className="space-y-4">
                         <p className="text-sm text-muted-foreground">
                             The listing agent has not enabled AI Property Q&A for this event.
+                        </p>
+                        <Link href={`/oh/${uuid}`}>
+                            <Button variant="outline">Back to Sign-in</Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (!event.chatUnlocked) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center px-4">
+                <Card className="w-full max-w-lg">
+                    <CardHeader>
+                        <CardTitle>Sign In First</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                            AI Home Q&A unlocks after the visitor completes the sign-in form.
                         </p>
                         <Link href={`/oh/${uuid}`}>
                             <Button variant="outline">Back to Sign-in</Button>

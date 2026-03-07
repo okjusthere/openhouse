@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { events } from "@/lib/db/schema";
 import { absoluteUrl } from "@/lib/site";
+import { buildPublicListingMarketing } from "@/lib/public-listing-view";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,12 @@ export async function generateMetadata({
       .select({
         propertyAddress: events.propertyAddress,
         listPrice: events.listPrice,
+        propertyType: events.propertyType,
+        bedrooms: events.bedrooms,
+        bathrooms: events.bathrooms,
+        sqft: events.sqft,
+        propertyDescription: events.propertyDescription,
+        aiQaContext: events.aiQaContext,
         branding: events.branding,
         propertyPhotos: events.propertyPhotos,
       })
@@ -52,10 +59,24 @@ export async function generateMetadata({
         ? `$${Number(event.listPrice).toLocaleString()}`
         : null;
 
-    const title = `${event.propertyAddress} | Open House Sign-In`;
-    const description = readablePrice
-      ? `${event.propertyAddress} (${readablePrice}) visitor sign-in page powered by OpenHouse.`
-      : `${event.propertyAddress} visitor sign-in page powered by OpenHouse.`;
+    const marketing = buildPublicListingMarketing({
+      propertyAddress: event.propertyAddress,
+      propertyType: event.propertyType,
+      bedrooms: event.bedrooms,
+      bathrooms: event.bathrooms,
+      sqft: event.sqft,
+      propertyDescription: event.propertyDescription,
+      aiQaContext: event.aiQaContext,
+    });
+
+    const title = marketing.headline
+      ? `${marketing.headline} | ${event.propertyAddress}`
+      : `${event.propertyAddress} | Open House Sign-In`;
+    const description =
+      marketing.summary ||
+      (readablePrice
+        ? `${event.propertyAddress} (${readablePrice}) visitor sign-in page powered by OpenHouse.`
+        : `${event.propertyAddress} visitor sign-in page powered by OpenHouse.`);
 
     const socialImage =
       event.propertyPhotos?.[0] ||
@@ -74,7 +95,8 @@ export async function generateMetadata({
         description,
         type: "website",
         url: absoluteUrl(`/oh/${uuid}`),
-        images: [{ url: socialImage }],
+        siteName: "OpenHouse",
+        images: [{ url: socialImage, alt: title }],
       },
       twitter: {
         card: "summary_large_image",

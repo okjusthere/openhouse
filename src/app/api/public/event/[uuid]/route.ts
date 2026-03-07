@@ -13,11 +13,13 @@ import { PLAN_LIMITS } from "@/lib/plans";
 import { countSignInsThisMonth, ensureUsageWindow, normalizePlanTier } from "@/lib/billing";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { hasAiConfiguration } from "@/lib/ai/openai";
+import { buildPublicChatAccessCookie, hasPublicChatAccessCookie } from "@/lib/public-chat-access";
+import { buildPublicListingMarketing } from "@/lib/public-listing-view";
 
 const signInSchema = z.object({
     fullName: z.string().min(1, "Name is required"),
-    phone: z.string().optional(),
-    email: z.string().email().optional().or(z.literal("")),
+    phone: z.string().min(1, "Phone is required"),
+    email: z.string().email("Valid email is required"),
     hasAgent: z.boolean().optional(),
     isPreApproved: z.enum(["yes", "no", "not_yet"]).optional(),
     interestLevel: z.enum(["very", "somewhat", "just_looking"]).optional(),
@@ -29,7 +31,7 @@ const signInSchema = z.object({
 });
 
 export async function GET(
-    _request: NextRequest,
+    request: NextRequest,
     { params }: { params: Promise<{ uuid: string }> }
 ) {
     const { uuid } = await params;
@@ -53,6 +55,7 @@ export async function GET(
             propertyPhotos: events.propertyPhotos,
             propertyDescription: events.propertyDescription,
             aiQaEnabled: events.aiQaEnabled,
+            aiQaContext: events.aiQaContext,
             userId: events.userId,
         })
         .from(events)
@@ -75,6 +78,20 @@ export async function GET(
         event.aiQaEnabled &&
         owner?.subscriptionTier === "pro" &&
         hasAiConfiguration();
+    const aiQaContext = event.aiQaContext as {
+        customFaq?: Array<{ question: string; answer: string }>;
+        mlsData?: Record<string, unknown>;
+        nearbyPoi?: Record<string, unknown>;
+    } | null;
+    const marketing = buildPublicListingMarketing({
+        propertyAddress: event.propertyAddress,
+        propertyType: event.propertyType,
+        bedrooms: event.bedrooms,
+        bathrooms: event.bathrooms,
+        sqft: event.sqft,
+        propertyDescription: event.propertyDescription,
+        aiQaContext,
+    });
 
     return NextResponse.json({
         uuid: event.uuid,
@@ -93,6 +110,8 @@ export async function GET(
         propertyPhotos: event.propertyPhotos,
         propertyDescription: event.propertyDescription,
         aiQaEnabled,
+        chatUnlocked: aiQaEnabled && hasPublicChatAccessCookie(request.cookies, uuid),
+        marketing,
     });
 }
 
@@ -103,7 +122,6 @@ export async function POST(
     const { uuid } = await params;
     const db = getDb();
 
-    // Look up event
     const [event] = await db
         .select()
         .from(events)
@@ -121,9 +139,9 @@ export async function POST(
         );
     }
 
-    if (event.status !== "active") {
+    if (event.status === "draft") {
         return NextResponse.json(
-            { error: "This open house is not currently accepting sign-ins" },
+            { error: "This open house is not published yet" },
             { status: 400 }
         );
     }
@@ -176,12 +194,11 @@ export async function POST(
             }
         }
 
-        // Create sign-in record
         const [result] = await db.insert(signIns).values({
             eventId: event.id,
             fullName: data.fullName,
-            phone: data.phone || null,
-            email: data.email || null,
+            phone: data.phone,
+            email: data.email,
             hasAgent: data.hasAgent ?? false,
             isPreApproved: data.isPreApproved || "not_yet",
             interestLevel: data.interestLevel || "just_looking",
@@ -193,13 +210,11 @@ export async function POST(
             crmSyncStatus: "pending",
         });
 
-        // Increment event sign-in counter
         await db
             .update(events)
             .set({ totalSignIns: sql`${events.totalSignIns} + 1` })
             .where(eq(events.id, event.id));
 
-        // AI-native flow: automatically process scoring/enrichment for Pro owners.
         if (tier === "pro") {
             try {
                 await processSignInWithAi({
@@ -209,19 +224,29 @@ export async function POST(
                     subscriptionTier: tier,
                 });
             } catch (processingError) {
-                // Sign-in itself should still succeed even if AI processing fails.
                 console.error("[SignIn] Auto AI processing failed:", processingError);
             }
         }
 
-        return NextResponse.json(
+        const aiQaEnabled =
+            event.aiQaEnabled &&
+            owner.subscriptionTier === "pro" &&
+            hasAiConfiguration();
+        const response = NextResponse.json(
             {
                 signInId: result.insertId,
                 success: true,
                 aiProcessed: tier === "pro",
+                chatUnlocked: aiQaEnabled,
             },
             { status: 201 }
         );
+
+        if (aiQaEnabled) {
+            response.cookies.set(buildPublicChatAccessCookie(uuid));
+        }
+
+        return response;
     } catch (error) {
         if (error instanceof z.ZodError) {
             return NextResponse.json(
