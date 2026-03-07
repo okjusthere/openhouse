@@ -9,6 +9,10 @@ export const openHousePropertyTypes = [
 
 export type OpenHousePropertyType = (typeof openHousePropertyTypes)[number];
 
+export const publicModes = ["open_house", "listing_inquiry"] as const;
+
+export type PublicMode = (typeof publicModes)[number];
+
 export type EventAiQaContext = {
   customFaq?: Array<{ question: string; answer: string }>;
   mlsData?: Record<string, unknown>;

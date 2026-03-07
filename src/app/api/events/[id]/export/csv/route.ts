@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { events, signIns } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { inferCaptureMode, formatPublicModeLabel } from "@/lib/public-mode";
 
 export async function GET(
     _request: NextRequest,
@@ -46,6 +47,7 @@ export async function GET(
     const headers = [
         "Name", "Phone", "Email", "Has Agent", "Pre-Approved",
         "Interest Level", "Buying Timeline", "Price Range",
+        "Capture Mode",
         "Lead Score", "Lead Tier", "AI Recommendation",
         "PDL Enriched", "PDL Job Title", "PDL Company", "PDL Industry",
         "PDL Salary", "PDL LinkedIn", "PDL Location",
@@ -54,6 +56,12 @@ export async function GET(
 
     const rows = eventSignIns.map((s) => {
         const pdlData = (s.pdlData as Record<string, unknown> | null) || {};
+        const captureMode = inferCaptureMode({
+            captureMode: s.captureMode,
+            eventPublicMode: event.publicMode,
+            signedInAt: s.signedInAt,
+            eventEndTime: event.endTime,
+        });
         return [
             s.fullName,
             s.phone || "",
@@ -63,6 +71,7 @@ export async function GET(
             s.interestLevel || "",
             s.buyingTimeline || "",
             s.priceRange || "",
+            formatPublicModeLabel(captureMode),
             (s.leadScore as Record<string, unknown> | null)?.overallScore ?? "",
             s.leadTier || "",
             s.aiRecommendation || "",

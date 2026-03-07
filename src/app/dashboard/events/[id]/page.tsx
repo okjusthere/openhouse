@@ -43,12 +43,14 @@ import {
   type EventImportDraft,
 } from "@/lib/listing-import-shared";
 import Image from "next/image";
+import { formatPublicModeLabel, inferCaptureMode } from "@/lib/public-mode";
 
 interface SignIn {
   id: number;
   fullName: string;
   phone: string | null;
   email: string | null;
+  captureMode: string | null;
   hasAgent: boolean;
   isPreApproved: string | null;
   interestLevel: string | null;
@@ -66,6 +68,7 @@ interface EventDetail {
   propertyDescription: string | null;
   startTime: string;
   endTime: string;
+  publicMode: string;
   status: string;
   totalSignIns: number;
   hotLeadsCount: number;
@@ -127,6 +130,7 @@ function buildFormFromEvent(event: EventDetail): EventFormState {
     complianceText: event.complianceText || "",
     startTime: event.startTime ? format(new Date(event.startTime), "yyyy-MM-dd'T'HH:mm") : "",
     endTime: event.endTime ? format(new Date(event.endTime), "yyyy-MM-dd'T'HH:mm") : "",
+    publicMode: event.publicMode === "listing_inquiry" ? "listing_inquiry" : "open_house",
     status: event.status,
     propertyType: (event.propertyType as EventFormState["propertyType"]) || "",
     bedrooms: event.bedrooms !== null && event.bedrooms !== undefined ? String(event.bedrooms) : "",
@@ -293,9 +297,9 @@ export default function EventDetailPage({
         </head>
         <body>
           <div class="sheet">
-            <div class="kicker">Open House Sign-In</div>
+            <div class="kicker">${event.publicMode === "listing_inquiry" ? "Listing Inquiry" : "Open House Sign-In"}</div>
             <h1>${event.propertyAddress}</h1>
-            <div class="sub">Scan to open the sign-in page on your phone.</div>
+            <div class="sub">${event.publicMode === "listing_inquiry" ? "Scan to open the property inquiry page on your phone." : "Scan to open the sign-in page on your phone."}</div>
             <img src="${shareKit.qrDataUrl}" alt="QR code" />
             <div class="url">${shareKit.signInUrl}</div>
           </div>
@@ -343,6 +347,7 @@ export default function EventDetailPage({
               <Badge className={STATUS_BADGE[event.status]?.className || ""}>
                 {STATUS_BADGE[event.status]?.label || event.status}
               </Badge>
+              <Badge variant="secondary">{formatPublicModeLabel(event.publicMode)}</Badge>
               <span className="text-sm text-muted-foreground">Reusable sign-in link</span>
             </div>
           </div>
@@ -407,11 +412,13 @@ export default function EventDetailPage({
           <div>
             <CardTitle className="text-base">Share Kit</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Use the direct sign-in link or print the QR for flyers, table tents, and door signage.
+              {event.publicMode === "listing_inquiry"
+                ? "Share the direct link or QR in follow-ups, brochures, and buyer-agent outreach."
+                : "Use the direct sign-in link or print the QR for flyers, table tents, and door signage."}
             </p>
           </div>
           <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
-            Guest-facing
+            {event.publicMode === "listing_inquiry" ? "Buyer-facing" : "Guest-facing"}
           </Badge>
         </CardHeader>
         <CardContent>
@@ -583,6 +590,26 @@ export default function EventDetailPage({
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="edit-public-mode">Public experience</Label>
+                      <Select
+                        value={form.publicMode}
+                        onValueChange={(value) =>
+                          updateForm("publicMode", value as EventFormState["publicMode"])
+                        }
+                      >
+                        <SelectTrigger id="edit-public-mode">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open_house">Open House</SelectItem>
+                          <SelectItem value="listing_inquiry">Listing Inquiry</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
                       <Label htmlFor="edit-status">Status</Label>
                       <Select value={form.status} onValueChange={(value) => updateForm("status", value)}>
                         <SelectTrigger id="edit-status">
@@ -618,6 +645,10 @@ export default function EventDetailPage({
                       />
                     </div>
                   </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Keep the event window for internal scheduling and seller reporting. The public link stays reusable after the scheduled open house ends.
+                  </p>
 
                   <div className="space-y-2">
                     <Label htmlFor="edit-description">Description</Label>
@@ -678,6 +709,10 @@ export default function EventDetailPage({
                 <div>
                   <span className="text-muted-foreground">Price:</span>{" "}
                   {event.listPrice ? `$${Number(event.listPrice).toLocaleString()}` : "—"}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Public experience:</span>{" "}
+                  {formatPublicModeLabel(event.publicMode)}
                 </div>
                 <div>
                   <span className="text-muted-foreground">Type:</span> {event.propertyType ? formatPropertyTypeLabel(event.propertyType) : "—"}
@@ -758,6 +793,16 @@ export default function EventDetailPage({
                         Pre-Approved
                       </Badge>
                     ) : null}
+                    <Badge variant="secondary" className="text-xs">
+                      {formatPublicModeLabel(
+                        inferCaptureMode({
+                          captureMode: signIn.captureMode,
+                          eventPublicMode: event.publicMode,
+                          signedInAt: signIn.signedInAt,
+                          eventEndTime: event.endTime,
+                        })
+                      )}
+                    </Badge>
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(signIn.signedInAt), "h:mm a")}
                     </span>

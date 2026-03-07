@@ -21,12 +21,14 @@ import {
 import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { formatPublicModeLabel, inferCaptureMode } from "@/lib/public-mode";
 
 interface SignIn {
     id: number;
     fullName: string;
     phone: string | null;
     email: string | null;
+    captureMode: string | null;
     hasAgent: boolean;
     isPreApproved: string | null;
     interestLevel: string | null;
@@ -45,6 +47,7 @@ interface EventDetail {
     listPrice: string | null;
     startTime: string;
     endTime: string;
+    publicMode: string;
     status: string;
     totalSignIns: number;
     hotLeadsCount: number;
@@ -95,6 +98,15 @@ export default function SellerReportPage({
     }
 
     const signIns = event.signIns || [];
+    const attributedSignIns = signIns.map((signIn) => ({
+        ...signIn,
+        inferredCaptureMode: inferCaptureMode({
+            captureMode: signIn.captureMode,
+            eventPublicMode: event.publicMode,
+            signedInAt: signIn.signedInAt,
+            eventEndTime: event.endTime,
+        }),
+    }));
     const hotLeads = signIns.filter(
         (s) => s.leadTier === "hot" || s.interestLevel === "very"
     );
@@ -104,6 +116,8 @@ export default function SellerReportPage({
     const withAgent = signIns.filter((s) => s.hasAgent).length;
     const preApproved = signIns.filter((s) => s.isPreApproved === "yes").length;
     const noAgent = signIns.filter((s) => !s.hasAgent).length;
+    const openHouseCaptures = attributedSignIns.filter((s) => s.inferredCaptureMode === "open_house").length;
+    const listingInquiryCaptures = attributedSignIns.filter((s) => s.inferredCaptureMode === "listing_inquiry").length;
 
     // Timeline breakdown by hour
     const hourMap: Record<string, number> = {};
@@ -175,6 +189,7 @@ export default function SellerReportPage({
                                 {event.bedrooms && <span>{event.bedrooms} bed</span>}
                                 {event.bathrooms && <span>{event.bathrooms} bath</span>}
                                 {event.sqft && <span>{event.sqft.toLocaleString()} sqft</span>}
+                                <span>{formatPublicModeLabel(event.publicMode)} link enabled</span>
                             </div>
                             <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                                 <CalendarDays className="h-4 w-4" />
@@ -189,7 +204,7 @@ export default function SellerReportPage({
             </Card>
 
             {/* Stats Grid */}
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
                 <Card>
                     <CardContent className="p-4 text-center">
                         <Users className="h-6 w-6 text-emerald-400 mx-auto mb-2" />
@@ -218,6 +233,13 @@ export default function SellerReportPage({
                         <div className="text-xs text-muted-foreground">Without Agent</div>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardContent className="p-4 text-center">
+                        <Share2 className="h-6 w-6 text-teal-500 mx-auto mb-2" />
+                        <div className="text-3xl font-bold">{listingInquiryCaptures}</div>
+                        <div className="text-xs text-muted-foreground">Long-Term Link Leads</div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Insights */}
@@ -244,6 +266,47 @@ export default function SellerReportPage({
                     <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Warm leads</span>
                         <span className="font-medium">{warmLeads.length} ({signIns.length ? Math.round(warmLeads.length / signIns.length * 100) : 0}%)</span>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Lead Attribution</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                        Separate live open house traffic from leads captured later through the reusable public link.
+                    </p>
+                    <div className="space-y-3">
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">On-site open house captures</span>
+                                <span className="font-medium">
+                                    {openHouseCaptures} ({signIns.length ? Math.round((openHouseCaptures / signIns.length) * 100) : 0}%)
+                                </span>
+                            </div>
+                            <div className="h-2 rounded-full bg-muted/40">
+                                <div
+                                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                                    style={{ width: `${signIns.length ? (openHouseCaptures / signIns.length) * 100 : 0}%` }}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">Reusable-link listing inquiries</span>
+                                <span className="font-medium">
+                                    {listingInquiryCaptures} ({signIns.length ? Math.round((listingInquiryCaptures / signIns.length) * 100) : 0}%)
+                                </span>
+                            </div>
+                            <div className="h-2 rounded-full bg-muted/40">
+                                <div
+                                    className="h-full rounded-full bg-gradient-to-r from-sky-500 to-blue-500"
+                                    style={{ width: `${signIns.length ? (listingInquiryCaptures / signIns.length) * 100 : 0}%` }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -288,7 +351,7 @@ export default function SellerReportPage({
                         </p>
                     ) : (
                         <div className="space-y-3">
-                            {signIns.map((s, i) => (
+                            {attributedSignIns.map((s, i) => (
                                 <div
                                     key={s.id}
                                     className="flex items-center justify-between p-3 rounded-lg border border-border/50"
@@ -325,6 +388,9 @@ export default function SellerReportPage({
                                                 No Agent
                                             </Badge>
                                         )}
+                                        <Badge variant="secondary" className="text-xs">
+                                            {formatPublicModeLabel(s.inferredCaptureMode)}
+                                        </Badge>
                                         <span className="text-xs text-muted-foreground">
                                             {s.signedInAt ? format(new Date(s.signedInAt), "h:mm a") : ""}
                                         </span>

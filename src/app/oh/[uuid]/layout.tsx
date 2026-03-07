@@ -26,6 +26,7 @@ export async function generateMetadata({
       .select({
         propertyAddress: events.propertyAddress,
         listPrice: events.listPrice,
+        publicMode: events.publicMode,
         propertyType: events.propertyType,
         bedrooms: events.bedrooms,
         bathrooms: events.bathrooms,
@@ -69,14 +70,16 @@ export async function generateMetadata({
       aiQaContext: event.aiQaContext,
     });
 
+    const experienceLabel =
+      event.publicMode === "listing_inquiry" ? "Property Details & AI Q&A" : "Open House Sign-In";
     const title = marketing.headline
       ? `${marketing.headline} | ${event.propertyAddress}`
-      : `${event.propertyAddress} | Open House Sign-In`;
+      : `${event.propertyAddress} | ${experienceLabel}`;
     const description =
       marketing.summary ||
       (readablePrice
-        ? `${event.propertyAddress} (${readablePrice}) visitor sign-in page powered by OpenHouse.`
-        : `${event.propertyAddress} visitor sign-in page powered by OpenHouse.`);
+        ? `${event.propertyAddress} (${readablePrice}) ${event.publicMode === "listing_inquiry" ? "property inquiry" : "visitor sign-in"} page powered by OpenHouse.`
+        : `${event.propertyAddress} ${event.publicMode === "listing_inquiry" ? "property inquiry" : "visitor sign-in"} page powered by OpenHouse.`);
 
     const socialImage =
       event.propertyPhotos?.[0] ||

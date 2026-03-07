@@ -2,6 +2,7 @@ import type {
   EventAiQaContext,
   EventImportDraft,
   OpenHousePropertyType,
+  PublicMode,
 } from "@/lib/listing-import-shared";
 
 export type EventFormState = {
@@ -12,6 +13,7 @@ export type EventFormState = {
   complianceText: string;
   startTime: string;
   endTime: string;
+  publicMode: PublicMode;
   status: string;
   propertyType: OpenHousePropertyType | "";
   bedrooms: string;
@@ -32,6 +34,7 @@ export function createEmptyEventFormState(): EventFormState {
     complianceText: "",
     startTime: "",
     endTime: "",
+    publicMode: "open_house",
     status: "active",
     propertyType: "",
     bedrooms: "",
@@ -78,6 +81,7 @@ export function buildEventPayload(form: EventFormState) {
     listPrice: form.listPrice.trim() || undefined,
     startTime: new Date(form.startTime).toISOString(),
     endTime: new Date(form.endTime).toISOString(),
+    publicMode: form.publicMode,
     propertyDescription: form.propertyDescription.trim() || undefined,
     complianceText: form.complianceText.trim() || undefined,
     status: form.status,

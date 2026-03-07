@@ -11,6 +11,7 @@ interface EventInfo {
     uuid: string;
     propertyAddress: string;
     listPrice: string | null;
+    publicMode: string;
     branding: { logoUrl?: string; primaryColor?: string; tagline?: string; flyerImageUrl?: string } | null;
     customFields: Array<{ label: string; type: "text" | "select"; options?: string[] }> | null;
     complianceText: string | null;
@@ -103,6 +104,7 @@ export default function KioskPage({
 
     const color = event?.branding?.primaryColor || "#10b981";
     const heroImage = event?.propertyPhotos?.[0] || event?.branding?.flyerImageUrl || null;
+    const isInquiryMode = event?.publicMode === "listing_inquiry";
 
     if (phase === "loading") {
         return (
@@ -170,7 +172,7 @@ export default function KioskPage({
                             className="mx-auto inline-flex rounded-2xl px-10 py-4 text-xl font-semibold text-white animate-pulse"
                             style={{ backgroundColor: color }}
                         >
-                            Tap to Sign In
+                            {isInquiryMode ? "Tap to Request Details" : "Tap to Sign In"}
                         </div>
                     </div>
                 </div>
@@ -216,7 +218,9 @@ export default function KioskPage({
                     <div className="mb-3 inline-flex rounded-full border border-border/60 bg-background/70 px-3 py-1.5">
                         <BrandLockup compact />
                     </div>
-                    <h1 className="mb-1 text-2xl font-bold">{event?.marketing?.headline || "Sign In"}</h1>
+                    <h1 className="mb-1 text-2xl font-bold">
+                        {event?.marketing?.headline || (isInquiryMode ? "Request Details" : "Sign In")}
+                    </h1>
                     <p className="text-sm text-muted-foreground">{event?.propertyAddress}</p>
                     {event?.marketing?.summary && (
                         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -346,7 +350,7 @@ export default function KioskPage({
                         style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}
                         disabled={submitting}
                     >
-                        {submitting ? "Submitting..." : "Sign In"}
+                        {submitting ? "Submitting..." : isInquiryMode ? "Request Details" : "Sign In"}
                     </button>
                 </form>
             </div>

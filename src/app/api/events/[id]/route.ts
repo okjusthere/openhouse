@@ -95,7 +95,7 @@ export async function PUT(
     // Build update object — only update provided fields
     const updateData: Record<string, unknown> = {};
     const allowedFields = [
-        "propertyAddress", "startTime", "endTime", "mlsNumber", "listPrice",
+        "propertyAddress", "startTime", "endTime", "publicMode", "mlsNumber", "listPrice",
         "propertyType", "bedrooms", "bathrooms", "sqft", "yearBuilt",
         "propertyDescription", "customFields", "branding", "complianceText",
         "status", "aiQaEnabled", "aiQaContext", "propertyPhotos",

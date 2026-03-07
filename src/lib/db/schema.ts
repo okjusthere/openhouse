@@ -102,6 +102,9 @@ export const events = mysqlTable(
         // Event Info
         startTime: timestamp("startTime").notNull(),
         endTime: timestamp("endTime").notNull(),
+        publicMode: mysqlEnum("publicMode", ["open_house", "listing_inquiry"])
+            .default("open_house")
+            .notNull(),
         status: mysqlEnum("status", ["draft", "active", "completed", "cancelled"])
             .default("draft")
             .notNull(),
@@ -160,6 +163,7 @@ export const signIns = mysqlTable(
         fullName: varchar("fullName", { length: 255 }).notNull(),
         phone: varchar("phone", { length: 50 }),
         email: varchar("email", { length: 255 }),
+        captureMode: mysqlEnum("captureMode", ["open_house", "listing_inquiry"]),
 
         // Buying Intent
         hasAgent: boolean("hasAgent").default(false),
@@ -221,6 +225,7 @@ export const signIns = mysqlTable(
     },
     (table) => [
         index("idx_oh_sign_ins_eventId").on(table.eventId),
+        index("idx_oh_sign_ins_captureMode").on(table.captureMode),
         index("idx_oh_sign_ins_leadTier").on(table.leadTier),
         index("idx_oh_sign_ins_email").on(table.email),
         index("idx_oh_sign_ins_phone").on(table.phone),

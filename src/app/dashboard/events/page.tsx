@@ -53,6 +53,7 @@ import {
   type EventFormState,
 } from "@/lib/event-form";
 import { openHousePropertyTypes, type EventImportDraft } from "@/lib/listing-import-shared";
+import { formatPublicModeLabel } from "@/lib/public-mode";
 
 interface OHEvent {
   id: number;
@@ -62,6 +63,7 @@ interface OHEvent {
   listPrice: string | null;
   startTime: string;
   endTime: string;
+  publicMode: string;
   status: string;
   totalSignIns: number;
   hotLeadsCount: number;
@@ -215,12 +217,12 @@ export default function EventsPage() {
           <DialogTrigger asChild>
             <Button className="border-0 bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700">
               <Plus className="mr-2 h-4 w-4" />
-              New Open House
+              New Event
             </Button>
           </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto border-border/60 sm:max-w-4xl">
             <DialogHeader>
-              <DialogTitle>Create Open House</DialogTitle>
+              <DialogTitle>Create Event</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="mt-2 space-y-6">
               <EventImportAssistant onApplyDraft={handleApplyDraft} />
@@ -335,6 +337,26 @@ export default function EventsPage() {
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="create-public-mode">Public experience</Label>
+                      <Select
+                        value={form.publicMode}
+                        onValueChange={(value) =>
+                          updateForm("publicMode", value as EventFormState["publicMode"])
+                        }
+                      >
+                        <SelectTrigger id="create-public-mode">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open_house">Open House</SelectItem>
+                          <SelectItem value="listing_inquiry">Listing Inquiry</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
                       <Label htmlFor="create-status">Initial status</Label>
                       <Select value={form.status} onValueChange={(value) => updateForm("status", value)}>
                         <SelectTrigger id="create-status">
@@ -364,7 +386,21 @@ export default function EventsPage() {
                   <div>
                     <p className="text-sm font-semibold text-foreground">Event schedule</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      These timestamps control the public sign-in page and reporting window.
+                      Keep the date window for internal scheduling and seller reporting. The public link can stay reusable after the event ends.
+                    </p>
+                  </div>
+
+                  <div className="rounded-3xl border border-border/60 bg-background/85 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Public mode
+                    </p>
+                    <p className="mt-2 text-sm text-foreground">
+                      {formatPublicModeLabel(form.publicMode)}
+                    </p>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {form.publicMode === "listing_inquiry"
+                        ? "Use the same link long-term for buyer agents and off-site prospects. The sign-in page behaves more like a property inquiry flow."
+                        : "Keep the classic open house sign-in flow for on-site traffic, then continue collecting leads from the same link afterward."}
                     </p>
                   </div>
 
@@ -433,7 +469,7 @@ export default function EventsPage() {
                 disabled={creating}
               >
                 {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Create Open House
+                Create Event
               </Button>
             </form>
           </DialogContent>
@@ -491,6 +527,7 @@ export default function EventsPage() {
                       <Badge className={STATUS_BADGE[event.status]?.className || ""}>
                         {STATUS_BADGE[event.status]?.label || event.status}
                       </Badge>
+                      <Badge variant="secondary">{formatPublicModeLabel(event.publicMode)}</Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>Reusable sign-in link</span>

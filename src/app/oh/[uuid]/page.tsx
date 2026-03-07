@@ -19,6 +19,7 @@ interface EventInfo {
     listPrice: string | null;
     startTime: string;
     endTime: string;
+    publicMode: string;
     status: string;
     branding: { logoUrl?: string; primaryColor?: string; tagline?: string; flyerImageUrl?: string } | null;
     complianceText: string | null;
@@ -120,6 +121,18 @@ export default function PublicSignInPage({
     const heroImage = event?.propertyPhotos?.[0] || event?.branding?.flyerImageUrl || null;
     const galleryImages = event?.propertyPhotos?.slice(0, 3) || [];
     const visualGallery = galleryImages.length > 0 ? galleryImages : heroImage ? [heroImage] : [];
+    const isInquiryMode = event?.publicMode === "listing_inquiry";
+    const badgeLabel = isInquiryMode ? "Listing Inquiry Access" : "Open House Guest Registration";
+    const formTitle = isInquiryMode ? "Request Details to Unlock Agent Follow-Up" : "Sign In to Unlock Agent Follow-Up";
+    const formDescription = isInquiryMode
+        ? "Share your name, phone, and email to access the listing conversation, disclosures, and direct follow-up from the listing agent."
+        : "Name, phone, and email are required so the listing agent can send disclosures, answer questions, and follow up after your visit.";
+    const successTitle = isInquiryMode ? "Your Request Is In" : "You're Signed In";
+    const successDescription = isInquiryMode
+        ? "Thanks for your interest. The listing agent now has your contact details and can follow up with property details and next steps."
+        : "Thanks for visiting. The listing agent now has your contact details for follow-up and next steps.";
+    const unlockButtonText = isInquiryMode ? "Continue to AI Property Q&A" : "Continue to AI Home Q&A";
+    const submitButtonText = isInquiryMode ? "Request Property Access" : "Sign In";
 
     if (phase === "loading") {
         return (
@@ -156,16 +169,16 @@ export default function PublicSignInPage({
                         >
                             <CheckCircle2 className="h-8 w-8" style={{ color: primaryColor }} />
                         </div>
-                        <h2 className="text-2xl font-bold mb-2">You&apos;re Signed In</h2>
+                        <h2 className="text-2xl font-bold mb-2">{successTitle}</h2>
                         <p className="text-muted-foreground mb-4">
-                            Thanks for visiting. The listing agent now has your contact details for follow-up and next steps.
+                            {successDescription}
                         </p>
                         <p className="text-sm text-muted-foreground mb-6">{event?.propertyAddress}</p>
                         {event?.aiQaEnabled && chatUnlocked ? (
                             <Link href={`/oh/${uuid}/chat`}>
                                 <Button className="bg-emerald-600 text-white hover:bg-emerald-700">
                                     <MessageSquareText className="mr-2 h-4 w-4" />
-                                    Continue to AI Home Q&A
+                                    {unlockButtonText}
                                 </Button>
                             </Link>
                         ) : null}
@@ -246,10 +259,10 @@ export default function PublicSignInPage({
 
                         <div className="space-y-4">
                             <div className="flex flex-wrap items-center gap-2">
-                                <Badge variant="secondary">Open House Guest Registration</Badge>
+                                <Badge variant="secondary">{badgeLabel}</Badge>
                                 {event?.aiQaEnabled ? (
                                     <Badge className="border-emerald-500/20 bg-emerald-500/10 text-emerald-700">
-                                        <Sparkles className="mr-1 h-3 w-3" /> AI Q&A unlocks after sign-in
+                                        <Sparkles className="mr-1 h-3 w-3" /> AI Q&A unlocks after {isInquiryMode ? "request" : "sign-in"}
                                     </Badge>
                                 ) : null}
                             </div>
@@ -300,9 +313,9 @@ export default function PublicSignInPage({
 
                     <Card className="border-border/60 bg-white/90 shadow-2xl shadow-emerald-950/6 backdrop-blur">
                         <CardHeader className="pb-4">
-                            <CardTitle className="text-lg">Sign In to Unlock Agent Follow-Up</CardTitle>
+                            <CardTitle className="text-lg">{formTitle}</CardTitle>
                             <p className="text-sm text-muted-foreground">
-                                Name, phone, and email are required so the listing agent can send disclosures, answer questions, and follow up after your visit.
+                                {formDescription}
                             </p>
                         </CardHeader>
                         <CardContent>
@@ -455,7 +468,7 @@ export default function PublicSignInPage({
                                     disabled={submitting}
                                 >
                                     {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Sign In
+                                    {submitButtonText}
                                 </Button>
                             </form>
                         </CardContent>

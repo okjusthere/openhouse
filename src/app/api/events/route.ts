@@ -12,11 +12,13 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { countEventsThisMonth, normalizePlanTier } from "@/lib/billing";
 import { PLAN_LIMITS } from "@/lib/plans";
+import { publicModes } from "@/lib/listing-import-shared";
 
 const createEventSchema = z.object({
     propertyAddress: z.string().min(1, "Property address is required"),
     startTime: z.string().transform((s) => new Date(s)),
     endTime: z.string().transform((s) => new Date(s)),
+    publicMode: z.enum(publicModes).optional(),
     mlsNumber: z.string().optional(),
     listPrice: z.string().optional(),
     propertyType: z
@@ -110,6 +112,7 @@ export async function POST(request: NextRequest) {
             propertyAddress: data.propertyAddress,
             startTime: data.startTime,
             endTime: data.endTime,
+            publicMode: data.publicMode || "open_house",
             mlsNumber: data.mlsNumber || null,
             listPrice: data.listPrice || null,
             propertyType: data.propertyType || null,
