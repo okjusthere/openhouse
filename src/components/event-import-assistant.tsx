@@ -69,6 +69,10 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
     () => "Paste an MLS number to pull structured property data from OneKey and enrich the event draft.",
     []
   );
+  const flyerHelper = useMemo(
+    () => "Upload a PDF flyer or a PNG, JPG, or WEBP marketing image. OpenHouse extracts listing facts, marketing copy, and AI Q&A context from the asset.",
+    []
+  );
 
   async function applyDraft(draft: EventImportDraft, successMessage: string) {
     onApplyDraft(draft);
@@ -189,7 +193,7 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
         <div>
           <CardTitle className="text-base sm:text-lg">Start with listing data instead of a blank form</CardTitle>
           <CardDescription className="mt-1 max-w-2xl text-sm leading-relaxed">
-            Pull a record from your MLS data service, search by address, or upload a PDF flyer to
+            Pull a record from your MLS data service, search by address, or upload a flyer asset to
             backfill the event draft and AI Q&A context. Keep the flyer upload path as a manual
             fallback whenever the MLS payload is incomplete or unavailable.
           </CardDescription>
@@ -217,7 +221,7 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
               className="rounded-2xl border border-border/60 bg-background/80 px-4 py-2 data-[state=active]:border-emerald-500/30 data-[state=active]:bg-emerald-500/[0.08]"
             >
               <FileUp className="h-4 w-4" />
-              Upload Flyer / PDF
+              Upload Flyer / PDF / Image
             </TabsTrigger>
           </TabsList>
 
@@ -314,10 +318,9 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
             <div className="rounded-3xl border border-border/60 bg-background/75 p-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Upload a PDF flyer</p>
+                  <p className="text-sm font-medium">Upload a flyer PDF or marketing image</p>
                   <p className="text-xs text-muted-foreground">
-                    OpenHouse will extract listing facts from a flyer image or PDF, generate a
-                    structured draft, and prep AI Q&A context from the uploaded asset.
+                    {flyerHelper}
                   </p>
                 </div>
                 <Label
@@ -329,7 +332,7 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
                   ) : (
                     <FileSearch className="h-4 w-4" />
                   )}
-                  {isUploadingFlyer ? "Analyzing PDF..." : "Choose PDF"}
+                  {isUploadingFlyer ? "Analyzing asset..." : "Choose file"}
                 </Label>
               </div>
               <input
@@ -343,6 +346,9 @@ export function EventImportAssistant({ onApplyDraft, className }: Props) {
               {selectedFileName ? (
                 <p className="mt-4 text-xs text-muted-foreground">Selected file: {selectedFileName}</p>
               ) : null}
+              <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                Best for manual fallback when MLS or address lookup misses details. Supported formats: PDF, PNG, JPG, WEBP.
+              </p>
             </div>
           </TabsContent>
         </Tabs>

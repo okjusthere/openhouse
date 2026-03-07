@@ -25,15 +25,39 @@ export type EventFormState = {
   importSummary: EventImportDraft["importSummary"] | null;
 };
 
+function toLocalDateTimeValue(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+  ].join("-") + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function getDefaultEventWindow() {
+  const start = new Date();
+  start.setMinutes(0, 0, 0);
+  start.setHours(Math.max(start.getHours(), 10));
+
+  const end = new Date(start);
+  end.setHours(end.getHours() + 2);
+
+  return {
+    startTime: toLocalDateTimeValue(start),
+    endTime: toLocalDateTimeValue(end),
+  };
+}
+
 export function createEmptyEventFormState(): EventFormState {
+  const defaults = getDefaultEventWindow();
   return {
     propertyAddress: "",
     mlsNumber: "",
     listPrice: "",
     propertyDescription: "",
     complianceText: "",
-    startTime: "",
-    endTime: "",
+    startTime: defaults.startTime,
+    endTime: defaults.endTime,
     publicMode: "open_house",
     status: "active",
     propertyType: "",
@@ -75,12 +99,15 @@ export function applyImportedDraft(
 }
 
 export function buildEventPayload(form: EventFormState) {
+  const defaults = getDefaultEventWindow();
+  const startTime = form.startTime || defaults.startTime;
+  const endTime = form.endTime || defaults.endTime;
   return {
     propertyAddress: form.propertyAddress,
     mlsNumber: form.mlsNumber.trim() || undefined,
     listPrice: form.listPrice.trim() || undefined,
-    startTime: new Date(form.startTime).toISOString(),
-    endTime: new Date(form.endTime).toISOString(),
+    startTime: new Date(startTime).toISOString(),
+    endTime: new Date(endTime).toISOString(),
     publicMode: form.publicMode,
     propertyDescription: form.propertyDescription.trim() || undefined,
     complianceText: form.complianceText.trim() || undefined,

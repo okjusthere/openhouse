@@ -407,9 +407,9 @@ export default function EventsPage() {
 
                 <div className="space-y-6 rounded-3xl border border-border/60 bg-muted/[0.18] p-5 shadow-sm">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Event schedule</p>
+                    <p className="text-sm font-semibold text-foreground">Publishing defaults</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Keep the date window for internal scheduling and seller reporting. The public link can stay reusable after the event ends.
+                      OpenHouse now manages the internal event window automatically. You only choose the public experience and any compliance copy you want shown.
                     </p>
                   </div>
 
@@ -425,28 +425,6 @@ export default function EventsPage() {
                         ? "Use the same link long-term for buyer agents and off-site prospects. The sign-in page behaves more like a property inquiry flow."
                         : "Keep the classic open house sign-in flow for on-site traffic, then continue collecting leads from the same link afterward."}
                     </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="create-start-time">Start time *</Label>
-                    <Input
-                      id="create-start-time"
-                      type="datetime-local"
-                      value={form.startTime}
-                      onChange={(event) => updateForm("startTime", event.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="create-end-time">End time *</Label>
-                    <Input
-                      id="create-end-time"
-                      type="datetime-local"
-                      value={form.endTime}
-                      onChange={(event) => updateForm("endTime", event.target.value)}
-                      required
-                    />
                   </div>
 
                   <div className="space-y-2">

@@ -20,6 +20,10 @@ interface ChatCompletionOptions {
 
 const DEFAULT_AZURE_DEPLOYMENT = "gpt-5-mini";
 
+function supportsCustomTemperature(deployment: string) {
+    return !/^gpt-5/i.test(deployment);
+}
+
 export function getAiDeploymentName() {
     return process.env.AZURE_OPENAI_DEPLOYMENT || DEFAULT_AZURE_DEPLOYMENT;
 }
@@ -45,8 +49,11 @@ export async function chatCompletion(options: ChatCompletionOptions): Promise<{
     const body: Record<string, unknown> = {
         messages: options.messages,
         max_completion_tokens: options.maxTokens || 1000,
-        temperature: options.temperature ?? 0.7,
     };
+
+    if (supportsCustomTemperature(deployment)) {
+        body.temperature = options.temperature ?? 0.7;
+    }
 
     if (options.responseFormat === "json") {
         body.response_format = { type: "json_object" };

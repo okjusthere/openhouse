@@ -625,30 +625,14 @@ export default function EventDetailPage({
                     </div>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-start">Start time</Label>
-                      <Input
-                        id="edit-start"
-                        type="datetime-local"
-                        value={form.startTime}
-                        onChange={(event) => updateForm("startTime", event.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-end">End time</Label>
-                      <Input
-                        id="edit-end"
-                        type="datetime-local"
-                        value={form.endTime}
-                        onChange={(event) => updateForm("endTime", event.target.value)}
-                      />
-                    </div>
+                  <div className="rounded-3xl border border-border/60 bg-muted/[0.18] p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      Internal scheduling
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      OpenHouse manages the internal event window automatically. The public link stays reusable after the live open house, so agents no longer need to manage start and end times here.
+                    </p>
                   </div>
-
-                  <p className="text-xs text-muted-foreground">
-                    Keep the event window for internal scheduling and seller reporting. The public link stays reusable after the scheduled open house ends.
-                  </p>
 
                   <div className="space-y-2">
                     <Label htmlFor="edit-description">Description</Label>
