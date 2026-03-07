@@ -9,7 +9,7 @@ import { events, signIns, users } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { processSignInWithAi } from "@/lib/ai/process-signin";
-import { PLAN_LIMITS } from "@/lib/plans";
+import { PLAN_LIMITS, hasUsageCap } from "@/lib/plans";
 import { countSignInsThisMonth, ensureUsageWindow, normalizePlanTier } from "@/lib/billing";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { hasAiConfiguration } from "@/lib/ai/openai";
@@ -187,10 +187,14 @@ export async function POST(
 
         if (tier === "free") {
             const signInsUsed = await countSignInsThisMonth(owner.id);
+            const freeSignInLimit = PLAN_LIMITS.free.maxSignInsPerMonth;
 
-            if (signInsUsed >= PLAN_LIMITS.free.maxSignInsPerMonth) {
+            if (
+                hasUsageCap(freeSignInLimit) &&
+                signInsUsed >= freeSignInLimit
+            ) {
                 return NextResponse.json(
-                    { error: "This account has reached its monthly Free sign-in limit." },
+                    { error: "This listing has reached the Free monthly capture limit. Upgrade to Pro for unlimited sign-ins." },
                     { status: 403 }
                 );
             }

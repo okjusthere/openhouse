@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LandingPage from "@/components/landing-page";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
-const homeTitle = "AI-Native Open House Platform for North American Teams";
+const homeTitle = "MLS-to-Share-Page Platform for Modern Open House Teams";
 const homeDescription =
-  "OpenHouse is a brokerage-ready platform for branded open house sign-ins, AI lead scoring, follow-up, property Q&A, and seller-facing reporting.";
+  "OpenHouse helps agents import a listing, launch one reusable share page, capture open house and long-tail buyer inquiries, then package the results into seller-ready reporting.";
 
 const faqItems = [
   {
@@ -14,7 +14,7 @@ const faqItems = [
   {
     question: "Do I need Pro to score leads?",
     answer:
-      "Free captures sign-ins. Pro unlocks AI scoring, recommendations, property Q&A, and follow-up generation.",
+      "Free includes unlimited listing launches, branded sign-in pages, and core reporting. Pro unlocks AI scoring, gated property Q&A, and automated follow-up.",
   },
   {
     question: "Does the platform replace legal or compliance review?",

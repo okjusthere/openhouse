@@ -5,7 +5,7 @@ export const siteConfig = {
   legalName: brand.legalName,
   title: `${brand.name} | AI-Native Open House Platform`,
   description:
-    "OpenHouse helps North American real estate teams run branded sign-ins, AI lead scoring, and seller-ready reporting from a single workflow.",
+    "OpenHouse helps North American real estate teams import listings, publish reusable inquiry links, capture sign-ins, and turn every showing into seller-ready reporting.",
   xHandle: "@openhousehq",
   keywords: [
     "open house software",

@@ -205,13 +205,36 @@ export default function EventsPage() {
   const filteredEvents = filter === "all" ? events : events.filter((event) => event.status === filter);
   const importedPhotoCount = form.propertyPhotos.length;
   const importedFaqCount = form.aiQaContext?.customFaq?.length ?? 0;
+  const totalCaptures = events.reduce((sum, event) => sum + event.totalSignIns, 0);
+  const activeLinks = events.filter((event) => event.status === "active" || event.status === "completed").length;
+  const listingInquiryLinks = events.filter((event) => event.publicMode === "listing_inquiry").length;
+  const sellerReportsReady = events.filter((event) => event.totalSignIns > 0).length;
+  const launchPlaybook = [
+    {
+      title: "Import the listing",
+      description: "Start from MLS, address, or flyer so the public page and seller report share the same facts.",
+      icon: CalendarDays,
+    },
+    {
+      title: "Publish one reusable link",
+      description: "Use the same branded URL for QR, kiosk, buyer agents, and long-tail inquiry traffic.",
+      icon: QrCode,
+    },
+    {
+      title: "Bring the seller story back",
+      description: "Report on on-site traffic, later inquiries, and hot leads without rebuilding the recap manually.",
+      icon: FileText,
+    },
+  ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Open Houses</h1>
-          <p className="mt-1 text-muted-foreground">Manage your open house events</p>
+          <p className="mt-1 text-muted-foreground">
+            Import the listing once, publish one reusable link, and keep seller reporting tight.
+          </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
           <DialogTrigger asChild>
@@ -476,6 +499,106 @@ export default function EventsPage() {
         </Dialog>
       </div>
 
+      {!loading ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="border-border/60 bg-card/70">
+            <CardContent className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Active listing links
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <QrCode className="h-5 w-5 text-emerald-500" />
+                <span className="text-2xl font-semibold">{activeLinks}</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Live or reusable public links currently available to share.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/60 bg-card/70">
+            <CardContent className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Listing inquiry links
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <CalendarDays className="h-5 w-5 text-sky-500" />
+                <span className="text-2xl font-semibold">{listingInquiryLinks}</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Events already positioned for long-tail buyer and buyer-agent traffic.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/60 bg-card/70">
+            <CardContent className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Captured leads
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <Users className="h-5 w-5 text-teal-500" />
+                <span className="text-2xl font-semibold">{totalCaptures}</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Total sign-ins and listing inquiries currently stored across this workspace.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/60 bg-card/70">
+            <CardContent className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                Seller reports ready
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-orange-500" />
+                <span className="text-2xl font-semibold">{sellerReportsReady}</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Listings with captured demand already ready for a seller-facing recap.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      {!loading ? (
+        <Card className="border-border/60 bg-gradient-to-br from-background via-card/70 to-muted/30">
+          <CardContent className="grid gap-6 p-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                Launch playbook
+              </p>
+              <h2 className="mt-3 text-xl font-semibold tracking-tight">
+                OpenHouse should feel like one listing workflow, not three disconnected tools.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                The strongest setups follow the same path every time: import the listing, publish one reusable share page, then turn the captured demand into a seller-ready story.
+              </p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              {launchPlaybook.map((item, index) => (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-border/50 bg-background/80 p-4 shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="inline-flex rounded-xl bg-emerald-500/10 p-2 text-emerald-700">
+                      <item.icon className="h-4 w-4" />
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-sm font-semibold">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="flex gap-2">
         {STATUS_FILTER.map((status) => (
           <Button
@@ -500,19 +623,34 @@ export default function EventsPage() {
         </div>
       ) : filteredEvents.length === 0 ? (
         <Card className="border-dashed border-border/50">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <CalendarDays className="mb-4 h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mb-1 text-lg font-semibold">No events yet</h3>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Create your first open house and start with MLS, address, or flyer import.
-            </p>
-            <Button
-              onClick={() => setDialogOpen(true)}
-              className="border-0 bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Open House
-            </Button>
+          <CardContent className="grid gap-6 py-16 text-center lg:grid-cols-[0.9fr_1.1fr] lg:text-left">
+            <div className="flex flex-col items-center justify-center lg:items-start">
+              <CalendarDays className="mb-4 h-12 w-12 text-muted-foreground/50" />
+              <h3 className="mb-2 text-lg font-semibold">No events yet</h3>
+              <p className="mb-5 max-w-md text-sm text-muted-foreground">
+                Start with MLS, address, or flyer import. The goal is one reusable listing link you can share at the open house, after the event, and in the seller recap.
+              </p>
+              <Button
+                onClick={() => setDialogOpen(true)}
+                className="border-0 bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create Open House
+              </Button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              {launchPlaybook.map((item) => (
+                <div key={item.title} className="rounded-2xl border border-border/50 bg-background/80 p-4 text-left">
+                  <div className="inline-flex rounded-xl bg-emerald-500/10 p-2 text-emerald-700">
+                    <item.icon className="h-4 w-4" />
+                  </div>
+                  <h4 className="mt-4 text-sm font-semibold">{item.title}</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       ) : (

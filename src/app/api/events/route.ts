@@ -11,7 +11,7 @@ import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { countEventsThisMonth, normalizePlanTier } from "@/lib/billing";
-import { PLAN_LIMITS } from "@/lib/plans";
+import { PLAN_LIMITS, hasUsageCap } from "@/lib/plans";
 import { publicModes } from "@/lib/listing-import-shared";
 
 const createEventSchema = z.object({
@@ -97,10 +97,14 @@ export async function POST(request: NextRequest) {
 
         if (tier === "free") {
             const eventsUsed = await countEventsThisMonth(Number(session.user.id));
+            const freeEventLimit = PLAN_LIMITS.free.maxEventsPerMonth;
 
-            if (eventsUsed >= PLAN_LIMITS.free.maxEventsPerMonth) {
+            if (
+                hasUsageCap(freeEventLimit) &&
+                eventsUsed >= freeEventLimit
+            ) {
                 return NextResponse.json(
-                    { error: "Free plan includes up to 3 open houses per month. Upgrade to Pro to add more." },
+                    { error: "Free plan event launches are temporarily capped. Upgrade to Pro for unlimited automation and team workflows." },
                     { status: 403 }
                 );
             }

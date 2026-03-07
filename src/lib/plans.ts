@@ -2,10 +2,12 @@
  * Feature tiers and usage limits for OpenHouse Pro.
  */
 
+export type UsageCap = number | null;
+
 export const PLAN_LIMITS = {
     free: {
-        maxEventsPerMonth: 3,
-        maxSignInsPerMonth: 50,
+        maxEventsPerMonth: null,
+        maxSignInsPerMonth: 150,
         pdlCredits: 0,
         aiQueries: 0,
         aiLeadScoring: false,
@@ -16,8 +18,8 @@ export const PLAN_LIMITS = {
         crmIntegration: "export_only" as const,
     },
     pro: {
-        maxEventsPerMonth: Infinity,
-        maxSignInsPerMonth: Infinity,
+        maxEventsPerMonth: null,
+        maxSignInsPerMonth: null,
         pdlCredits: 0,
         aiQueries: 500,
         aiLeadScoring: true,
@@ -36,6 +38,10 @@ export type PlanTier = keyof typeof PLAN_LIMITS;
  */
 export function isPro(tier: string): boolean {
     return tier === "pro";
+}
+
+export function hasUsageCap(limit: UsageCap): limit is number {
+    return typeof limit === "number" && Number.isFinite(limit);
 }
 
 /**

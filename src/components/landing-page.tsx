@@ -20,7 +20,6 @@ import {
   ShieldCheck,
   Sparkles,
   UserCheck,
-  Zap,
 } from "lucide-react";
 
 /* ───────────────────── Data ───────────────────── */
@@ -33,38 +32,38 @@ const NAV_LINKS = [
 ];
 
 const HERO_STATS = [
-  { value: "3x", label: "faster lead qualification" },
-  { value: "< 60s", label: "from sign-in to scored lead" },
-  { value: "500", label: "AI property Q&A messages in Pro" },
+  { value: "1 link", label: "for the open house, buyer agents, and long-tail inquiries" },
+  { value: "MLS-first", label: "imports become a polished share page in minutes" },
+  { value: "Seller-ready", label: "reporting separates live traffic from later demand" },
 ];
 
 const PRODUCT_PILLARS = [
   {
     id: "01",
-    title: "Capture that feels branded",
+    title: "Launch from listing data",
     description:
-      "Mobile sign-in, kiosk mode, QR entry points, and custom fields that look like your brokerage, not a generic form.",
+      "Import by MLS, address, or flyer and turn one listing record into the source for the public page, kiosk flow, and AI context.",
     icon: Building2,
   },
   {
     id: "02",
-    title: "AI-native lead intelligence",
+    title: "One reusable public link",
     description:
-      "Rule + LLM scoring, tiering, recommendation text, and AI-assisted next actions in a single profile built for next-action speed.",
-    icon: Brain,
-  },
-  {
-    id: "03",
-    title: "Operational daily workflow",
-    description:
-      "From open-house setup to follow-up generation, every step is sequenced so agents can run events without tool switching.",
+      "Use the same branded share page for the live open house, QR handouts, buyer agents, and post-event listing inquiries without spinning up new forms.",
     icon: CalendarDays,
   },
   {
-    id: "04",
-    title: "Seller-ready reporting",
+    id: "03",
+    title: "AI after sign-in, not before",
     description:
-      "Shareable report views, traffic timeline, visitor mix, and export controls for client updates and internal performance review.",
+      "Gated property Q&A, lead scoring, and follow-up generation sit on top of the capture flow so agents collect the lead before giving away the answer.",
+    icon: Brain,
+  },
+  {
+    id: "04",
+    title: "Seller-ready attribution",
+    description:
+      "Show sellers what happened on-site, what kept converting later, and which buyers deserve the next call instead of dumping raw sign-in rows.",
     icon: BarChart3,
   },
 ];
@@ -72,24 +71,57 @@ const PRODUCT_PILLARS = [
 const WORKFLOW_STEPS = [
   {
     step: "Step 1",
-    title: "Launch the event",
+    title: "Import and clean the listing",
     description:
-      "Create the open house, set event details, and publish a branded QR sign-in link in minutes.",
-    icon: CalendarDays,
+      "Pull in MLS, address, or flyer details, then make fast edits so the share page and report start from the same listing record.",
+    icon: Building2,
   },
   {
     step: "Step 2",
-    title: "Capture and score automatically",
+    title: "Publish one link everywhere",
     description:
-      "Visitors sign in, leads are scored, and Pro plans run recommendation logic with no manual trigger.",
-    icon: Zap,
+      "Turn the listing into a branded mobile page, QR sign-in, and kiosk experience that still works after the weekend.",
+    icon: CalendarDays,
   },
   {
     step: "Step 3",
-    title: "Act and report",
+    title: "Capture, qualify, and report",
     description:
-      "Prioritize hot leads, generate AI follow-up drafts, and deliver a seller-facing report after the event.",
+      "Pro scores the lead, unlocks property Q&A, drafts follow-up, and packages everything into a seller-facing summary with attribution.",
     icon: FileCheck2,
+  },
+];
+
+const DIFFERENTIATORS = [
+  {
+    title: "This is not just a sign-in form.",
+    description:
+      "Typical tools stop at name, phone, email. OpenHouse starts there, then keeps the same listing link alive for post-event traffic and buyer-agent sharing.",
+    icon: UserCheck,
+    bullets: [
+      "One public URL for live visitors and off-site inquiry",
+      "QR, kiosk, and share-page experience from the same event record",
+    ],
+  },
+  {
+    title: "The $29 layer is automation and attribution.",
+    description:
+      "Free lets agents launch listings and prove the workflow. Pro is where AI qualification, follow-up, and long-tail seller reporting compound the value.",
+    icon: Sparkles,
+    bullets: [
+      "AI scoring and gated property Q&A after sign-in",
+      "Seller report separates open-house traffic from later interest",
+    ],
+  },
+  {
+    title: "MLS import becomes a better public experience.",
+    description:
+      "Imported data is cleaned into a listing-first share page instead of dumping raw remarks. That makes the public page more credible and more printable for real-world use.",
+    icon: MessageSquareText,
+    bullets: [
+      "Polished headline, summary, highlights, and images",
+      "Better context for follow-up, Q&A, and seller updates",
+    ],
   },
 ];
 
@@ -146,13 +178,13 @@ const PRICING = [
     name: "Free",
     price: "$0",
     period: "forever",
-    summary: "Best for individual agents starting digital sign-in.",
+    summary: "Best for agents proving a polished listing capture workflow before adding automation.",
     features: [
-      "3 open houses / month",
-      "50 sign-ins / month",
-      "QR + kiosk sign-in",
-      "Basic seller report",
-      "CSV export",
+      "Unlimited listing launches",
+      "150 sign-ins / month",
+      "MLS, address, or flyer import",
+      "Branded share page, QR, and kiosk mode",
+      "Seller report preview + CSV export",
     ],
     cta: "Start Free",
     highlighted: false,
@@ -161,14 +193,14 @@ const PRICING = [
     name: "Pro",
     price: "$29",
     period: "/month",
-    summary: "Built for AI-first lead qualification and follow-up.",
+    summary: "Built for teams that want automation, seller attribution, and long-tail listing demand in one loop.",
     features: [
-      "Unlimited events and sign-ins",
-      "AI lead scoring + recommendations",
-      "Property Q&A chatbot (500 queries / month)",
-      "AI follow-up generation",
-      "Reusable listing inquiry links",
-      "Detailed seller reporting",
+      "Unlimited sign-ins and AI workflows",
+      "AI lead scoring + next-step recommendations",
+      "Sign-in-gated property Q&A (500 messages / month)",
+      "AI follow-up with Gmail direct send or Resend fallback",
+      "Reusable listing inquiry links with capture attribution",
+      "Detailed seller reporting and share kit",
     ],
     cta: "Start Pro",
     highlighted: true,
@@ -182,7 +214,11 @@ const FAQ = [
   },
   {
     q: "Do I need Pro to score leads?",
-    a: "Free captures sign-ins. Pro unlocks AI scoring, recommendations, property Q&A, and follow-up generation.",
+    a: "Free covers listing launches, branded pages, QR capture, and seller-report basics. Pro unlocks AI scoring, gated property Q&A, automated follow-up, and detailed attribution.",
+  },
+  {
+    q: "Can the same link keep working after the open house ends?",
+    a: "Yes. OpenHouse links stay reusable so agents can keep sharing them with buyer agents and off-site prospects, then separate those captures in the seller report.",
   },
   {
     q: "Does the platform replace legal or compliance review?",
@@ -259,16 +295,11 @@ export default function LandingPage() {
               For North American real estate teams
             </Badge>
             <h1 className="font-display max-w-3xl text-[2.75rem] font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.5rem]">
-              Turn every open house into a{" "}
-              <span className="bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">
-                measured lead pipeline
-              </span>
-              .
+              Import the listing once. Use one branded link for the open house, the buyer agent, and the seller report.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              OpenHouse is an AI-native event workflow for modern brokerages: branded sign-in,
-              automatic lead scoring, follow-up, and seller-ready reporting in one operational
-              surface.
+              OpenHouse starts with MLS, address, or flyer import, turns it into a polished share page,
+              captures sign-ins and long-tail inquiries, then packages the demand story back into seller-ready reporting.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -277,13 +308,13 @@ export default function LandingPage() {
                   size="lg"
                   className="h-12 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 px-7 text-white shadow-md shadow-emerald-900/10 transition-all hover:from-emerald-600 hover:to-teal-700 hover:shadow-lg"
                 >
-                  Launch your first event
+                  Launch your first listing link
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <a href="#product">
+              <a href="#workflow">
                 <Button size="lg" variant="outline" className="h-12 rounded-full px-7">
-                  Explore product
+                  See the workflow
                 </Button>
               </a>
             </div>
@@ -302,7 +333,7 @@ export default function LandingPage() {
 
             <p className="mt-7 inline-flex items-center gap-2 rounded-full border border-border/40 bg-card/50 px-3.5 py-2 text-sm text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" />
-              AI outputs are draft-first. Human review stays in your workflow.
+              Free is generous on launches. Pro is where the AI qualification and seller-attribution layer starts.
             </p>
           </div>
 
@@ -310,30 +341,30 @@ export default function LandingPage() {
           <aside className="rounded-[28px] border border-border/50 bg-card/80 p-5 shadow-2xl shadow-emerald-900/[0.04] backdrop-blur-xl md:p-6">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-700/90">
-                Daily ops snapshot
+                Listing launch snapshot
               </p>
               <Badge className="rounded-full border-emerald-500/25 bg-emerald-500/8 text-emerald-700">
-                Live Workflow
+                Reusable Link
               </Badge>
             </div>
 
             <div className="mt-4 space-y-3 rounded-2xl border border-border/40 bg-background/60 p-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Saturday Open House</span>
+                <span className="text-muted-foreground">Imported listing</span>
                 <span className="font-medium">123 Park Avenue, NY</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="rounded-2xl bg-muted/50 p-2.5 text-center">
-                  <p className="font-display text-lg font-semibold">27</p>
-                  <p className="text-[11px] text-muted-foreground">sign-ins</p>
+                  <p className="font-display text-lg font-semibold">1</p>
+                  <p className="text-[11px] text-muted-foreground">share page</p>
                 </div>
                 <div className="rounded-2xl bg-muted/50 p-2.5 text-center">
-                  <p className="font-display text-lg font-semibold text-orange-600">6</p>
-                  <p className="text-[11px] text-muted-foreground">hot leads</p>
+                  <p className="font-display text-lg font-semibold text-orange-600">32</p>
+                  <p className="text-[11px] text-muted-foreground">captures</p>
                 </div>
                 <div className="rounded-2xl bg-muted/50 p-2.5 text-center">
-                  <p className="font-display text-lg font-semibold text-cyan-700">14</p>
-                  <p className="text-[11px] text-muted-foreground">follow-ups</p>
+                  <p className="font-display text-lg font-semibold text-cyan-700">9</p>
+                  <p className="text-[11px] text-muted-foreground">later inquiries</p>
                 </div>
               </div>
             </div>
@@ -341,24 +372,24 @@ export default function LandingPage() {
             <div className="mt-4 space-y-2.5">
               {[
                 {
-                  title: "Kiosk capture completed",
-                  meta: "11:26 AM",
-                  icon: UserCheck,
+                  title: "MLS import cleaned into share-page content",
+                  meta: "10:12 AM",
+                  icon: Building2,
                 },
                 {
-                  title: "AI score + recommendation generated",
-                  meta: "11:26 AM",
-                  icon: Brain,
+                  title: "QR, kiosk, and public link published",
+                  meta: "10:15 AM",
+                  icon: CalendarDays,
                 },
                 {
-                  title: "Property Q&A context ready",
+                  title: "AI Q&A unlocks after sign-in",
                   meta: "11:27 AM",
                   icon: MessageSquareText,
                 },
                 {
-                  title: "Follow-up draft ready",
-                  meta: "11:29 AM",
-                  icon: MessageSquareText,
+                  title: "Seller report split by on-site vs later demand",
+                  meta: "6:40 PM",
+                  icon: FileCheck2,
                 },
               ].map((item) => (
                 <div
@@ -394,12 +425,11 @@ export default function LandingPage() {
                 Product
               </p>
               <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Morning brief, not a generic AI tool.
+                Listing workflow first, automation second.
               </h2>
             </div>
             <p className="text-base text-muted-foreground lg:text-right">
-              Each module maps to how North American agents actually run events, qualify visitors,
-              and report outcomes.
+              The product is built around how agents actually launch a listing, share it, capture demand, and report back to the seller.
             </p>
           </div>
 
@@ -431,10 +461,10 @@ export default function LandingPage() {
                 Workflow
               </p>
               <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Open. Scan. Score. Follow up.
+                Import. Share. Capture. Report.
               </h2>
               <p className="mt-4 text-base text-muted-foreground">
-                A single operating loop, from event launch to post-event outreach.
+                A single operating loop, from listing import to long-tail inquiry capture.
               </p>
             </div>
 
@@ -458,6 +488,47 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section className="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-24">
+          <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700/90">
+                Why teams upgrade
+              </p>
+              <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                $29 pays for the automation layer, not the form.
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                Free is intentionally usable. Pro is where the listing keeps compounding after the open house through AI engagement, follow-up, and seller attribution.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {DIFFERENTIATORS.map((item) => (
+                <article
+                  key={item.title}
+                  className="rounded-[24px] border border-border/50 bg-card/65 p-5 md:p-6"
+                >
+                  <div className="inline-flex rounded-xl bg-emerald-500/10 p-2 text-emerald-700">
+                    <item.icon className="h-4 w-4" />
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold leading-snug">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
+                  <ul className="mt-4 space-y-2.5">
+                    {item.bullets.map((bullet) => (
+                      <li key={bullet} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ═══════════════════════════════════════════════
             AI Playbooks
            ═══════════════════════════════════════════════ */}
@@ -466,13 +537,12 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700/90">
               AI playbooks
             </p>
-            <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Different lead tiers, different operating moves.
-            </h2>
-            <p className="mt-4 text-base text-muted-foreground">
-              OpenHouse does not flatten every visitor into one sequence. It aligns recommendations
-              to urgency and likelihood.
-            </p>
+              <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                Qualification and follow-up stay attached to the listing context.
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+              OpenHouse does not flatten every visitor into one sequence. It scores, routes, and drafts follow-up based on the same event and listing record the lead came through.
+              </p>
 
             <div className="mt-6 space-y-2">
               {SCRIPT_PREVIEWS.map((item) => (
@@ -520,8 +590,8 @@ export default function LandingPage() {
               <ul className="mt-3 space-y-2.5">
                 {[
                   "Prioritization is standardized across every event.",
-                  "Outreach copy is generated in the same workflow context.",
-                  "Seller reporting remains aligned with lead actions.",
+                  "Outreach copy is generated inside the listing workflow, not in a disconnected email tool.",
+                  "Seller reporting stays aligned with on-site and long-tail lead actions.",
                 ].map((line) => (
                   <li key={line} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
@@ -592,9 +662,9 @@ export default function LandingPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700/90">
               Pricing
             </p>
-            <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Two plans, clear operating boundaries.
-            </h2>
+              <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                Start free. Upgrade when the workflow needs automation.
+              </h2>
           </div>
 
           <div className="mt-10 grid gap-5 md:grid-cols-2">
@@ -651,8 +721,7 @@ export default function LandingPage() {
           </div>
 
           <p className="mt-6 text-sm text-muted-foreground">
-            Pro includes AI scoring, follow-up generation, and 500 property Q&A messages monthly.
-            Usage is hard capped to the plan allowance unless you add a higher-tier package later.
+            Free keeps launches generous so agents can prove the workflow on real listings. Pro keeps the $29 price point focused on AI qualification, reusable-link attribution, and automated follow-up.
           </p>
         </section>
 

@@ -118,10 +118,55 @@ export default function SellerReportPage({
     const noAgent = signIns.filter((s) => !s.hasAgent).length;
     const openHouseCaptures = attributedSignIns.filter((s) => s.inferredCaptureMode === "open_house").length;
     const listingInquiryCaptures = attributedSignIns.filter((s) => s.inferredCaptureMode === "listing_inquiry").length;
+    const scoredLeadCount = signIns.filter((signIn) => signIn.leadScore?.overallScore !== undefined).length;
+    const averageLeadScore = scoredLeadCount
+        ? Math.round(
+            signIns.reduce((sum, signIn) => sum + (signIn.leadScore?.overallScore ?? 0), 0) / scoredLeadCount
+        )
+        : 0;
+    const directBuyerPercent = signIns.length ? Math.round((noAgent / signIns.length) * 100) : 0;
+    const inquiryShare = signIns.length ? Math.round((listingInquiryCaptures / signIns.length) * 100) : 0;
+    const onSiteShare = signIns.length ? Math.round((openHouseCaptures / signIns.length) * 100) : 0;
+    const executiveSummary = [
+        signIns.length === 0
+            ? "No demand has been captured yet, so this report will update once the public link starts converting traffic."
+            : `${signIns.length} total captures came through this listing, including ${hotLeads.length} high-priority leads worth immediate follow-up.`,
+        listingInquiryCaptures > 0
+            ? `${listingInquiryCaptures} captures happened through the reusable listing link after the live event, showing the page kept producing demand beyond the open house window.`
+            : "So far, all captured demand has come from the live open house traffic rather than later link sharing.",
+        noAgent > 0
+            ? `${noAgent} visitors came in without a buyer agent, creating a direct-conversion opportunity for the listing side.`
+            : "Most captured traffic already has buyer-agent representation, so next steps should focus on offer timing and relationship management.",
+    ];
+    const sellerTalkingPoints = [
+        {
+            title: "Demand quality",
+            body:
+                hotLeads.length > 0
+                    ? `${hotLeads.length} visitors signaled strong intent, giving the seller a concrete shortlist of buyers to watch.`
+                    : "The event generated traffic, but no visitors yet stand out as clearly high-intent leads.",
+        },
+        {
+            title: "Traffic mix",
+            body:
+                listingInquiryCaptures > 0
+                    ? `${inquiryShare}% of captured demand came through the reusable public link after the event, which supports ongoing marketing and buyer-agent sharing.`
+                    : `${onSiteShare}% of captured demand came directly from the live open house, so the event itself remains the primary conversion channel.`,
+        },
+        {
+            title: "Agent opportunity",
+            body:
+                noAgent > 0
+                    ? `${directBuyerPercent}% of captured visitors were not working with an agent, which is a meaningful direct-lead opportunity.`
+                    : "Most captured visitors are represented, so agent-to-agent follow-up and timing discipline matter more than raw lead count.",
+        },
+    ];
 
     // Timeline breakdown by hour
     const hourMap: Record<string, number> = {};
-    signIns.forEach((s) => {
+    attributedSignIns
+        .filter((signIn) => signIn.inferredCaptureMode === "open_house")
+        .forEach((s) => {
         if (s.signedInAt) {
             const hour = format(new Date(s.signedInAt), "h:mm a");
             hourMap[hour] = (hourMap[hour] || 0) + 1;
@@ -209,7 +254,7 @@ export default function SellerReportPage({
                     <CardContent className="p-4 text-center">
                         <Users className="h-6 w-6 text-emerald-400 mx-auto mb-2" />
                         <div className="text-3xl font-bold">{signIns.length}</div>
-                        <div className="text-xs text-muted-foreground">Total Visitors</div>
+                        <div className="text-xs text-muted-foreground">Total Captures</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -230,7 +275,7 @@ export default function SellerReportPage({
                     <CardContent className="p-4 text-center">
                         <Clock className="h-6 w-6 text-purple-400 mx-auto mb-2" />
                         <div className="text-3xl font-bold">{noAgent}</div>
-                        <div className="text-xs text-muted-foreground">Without Agent</div>
+                        <div className="text-xs text-muted-foreground">Direct Buyer Opportunities</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -241,6 +286,46 @@ export default function SellerReportPage({
                     </CardContent>
                 </Card>
             </div>
+
+            <Card className="border-border/60 bg-gradient-to-br from-background via-card/70 to-muted/20">
+                <CardHeader>
+                    <CardTitle className="text-base">Executive Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+                    <div className="space-y-3">
+                        {executiveSummary.map((line) => (
+                            <div
+                                key={line}
+                                className="rounded-2xl border border-border/50 bg-background/75 p-4 text-sm leading-relaxed text-muted-foreground"
+                            >
+                                {line}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="grid gap-3">
+                        <div className="rounded-2xl border border-border/50 bg-background/75 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                Average AI score
+                            </p>
+                            <p className="mt-2 text-3xl font-bold">{averageLeadScore}</p>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                {scoredLeadCount > 0
+                                    ? `Based on ${scoredLeadCount} captured visitors with AI lead scoring attached.`
+                                    : "No AI-scored leads yet for this listing."}
+                            </p>
+                        </div>
+                        <div className="rounded-2xl border border-border/50 bg-background/75 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                Ongoing demand
+                            </p>
+                            <p className="mt-2 text-3xl font-bold">{inquiryShare}%</p>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                                Share of captured demand generated by the reusable link after the live event.
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Insights */}
             <Card>
@@ -272,19 +357,36 @@ export default function SellerReportPage({
 
             <Card>
                 <CardHeader>
+                    <CardTitle className="text-base">Seller Talking Points</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-3">
+                    {sellerTalkingPoints.map((item) => (
+                        <div
+                            key={item.title}
+                            className="rounded-2xl border border-border/50 bg-background/70 p-4"
+                        >
+                            <p className="text-sm font-semibold">{item.title}</p>
+                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                {item.body}
+                            </p>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle className="text-base">Lead Attribution</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                        Separate live open house traffic from leads captured later through the reusable public link.
+                        Separate live open house traffic from leads captured later through the reusable public link so the seller can see whether interest kept building after the doors closed.
                     </p>
                     <div className="space-y-3">
                         <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">On-site open house captures</span>
-                                <span className="font-medium">
-                                    {openHouseCaptures} ({signIns.length ? Math.round((openHouseCaptures / signIns.length) * 100) : 0}%)
-                                </span>
+                                <span className="font-medium">{openHouseCaptures} ({onSiteShare}%)</span>
                             </div>
                             <div className="h-2 rounded-full bg-muted/40">
                                 <div
@@ -296,9 +398,7 @@ export default function SellerReportPage({
                         <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Reusable-link listing inquiries</span>
-                                <span className="font-medium">
-                                    {listingInquiryCaptures} ({signIns.length ? Math.round((listingInquiryCaptures / signIns.length) * 100) : 0}%)
-                                </span>
+                                <span className="font-medium">{listingInquiryCaptures} ({inquiryShare}%)</span>
                             </div>
                             <div className="h-2 rounded-full bg-muted/40">
                                 <div
@@ -315,7 +415,7 @@ export default function SellerReportPage({
             {Object.keys(hourMap).length > 0 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Traffic Timeline</CardTitle>
+                        <CardTitle className="text-base">Live Open House Traffic Timeline</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2">

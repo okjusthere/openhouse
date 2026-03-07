@@ -27,8 +27,8 @@ type BillingStatus = {
   aiQueriesLimit: number;
   usageResetAt: string | null;
   limits: {
-    maxEventsPerMonth: number;
-    maxSignInsPerMonth: number;
+    maxEventsPerMonth: number | null;
+    maxSignInsPerMonth: number | null;
   };
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
@@ -56,6 +56,10 @@ async function redirectToBilling(endpoint: "/api/billing/checkout" | "/api/billi
   }
 
   window.location.href = data.url;
+}
+
+function renderUsageLimit(limit: number | null) {
+  return limit === null ? "Unlimited" : limit.toLocaleString();
 }
 
 export default function SettingsPage() {
@@ -461,25 +465,35 @@ export default function SettingsPage() {
             <>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
-                  <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Events</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Listing launches</p>
                   <p className="mt-2 text-lg font-semibold">
                     {billingStatus.eventsUsed}
-                    {!isPro && (
+                    {billingStatus.limits.maxEventsPerMonth !== null && (
                       <span className="ml-1 text-sm font-normal text-muted-foreground">
-                        / {billingStatus.limits.maxEventsPerMonth}
+                        / {renderUsageLimit(billingStatus.limits.maxEventsPerMonth)}
                       </span>
                     )}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {billingStatus.limits.maxEventsPerMonth === null
+                      ? "Unlimited on your current plan"
+                      : `${renderUsageLimit(billingStatus.limits.maxEventsPerMonth)} included monthly`}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
                   <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Sign-ins</p>
                   <p className="mt-2 text-lg font-semibold">
                     {billingStatus.signInsUsed}
-                    {!isPro && (
+                    {billingStatus.limits.maxSignInsPerMonth !== null && (
                       <span className="ml-1 text-sm font-normal text-muted-foreground">
-                        / {billingStatus.limits.maxSignInsPerMonth}
+                        / {renderUsageLimit(billingStatus.limits.maxSignInsPerMonth)}
                       </span>
                     )}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {billingStatus.limits.maxSignInsPerMonth === null
+                      ? "Unlimited capture volume"
+                      : `${renderUsageLimit(billingStatus.limits.maxSignInsPerMonth)} included monthly`}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
@@ -505,7 +519,7 @@ export default function SettingsPage() {
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Check className="h-3 w-3 text-emerald-500" /> Unlimited events
+                      <Check className="h-3 w-3 text-emerald-500" /> Unlimited listing launches
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Check className="h-3 w-3 text-emerald-500" /> AI lead scoring
@@ -515,6 +529,12 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Check className="h-3 w-3 text-emerald-500" /> Gmail direct send + fallback
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Check className="h-3 w-3 text-emerald-500" /> Long-tail listing inquiry attribution
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Check className="h-3 w-3 text-emerald-500" /> Share kit + seller report
                     </div>
                   </div>
 
@@ -546,23 +566,25 @@ export default function SettingsPage() {
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Upgrade to Pro to unlock automated AI scoring, follow-up generation, and
-                    property Q&A.
+                    Free keeps listing launches generous so you can run branded share pages, QR sign-ins, and seller-report basics on real listings. Pro adds the automation and attribution layer.
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Sparkles className="h-3 w-3 text-emerald-500" /> AI lead scoring
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Sparkles className="h-3 w-3 text-emerald-500" /> AI property Q&A
+                      <Sparkles className="h-3 w-3 text-emerald-500" /> Sign-in-gated AI Q&A
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Sparkles className="h-3 w-3 text-emerald-500" /> AI follow-up drafts
+                      <Sparkles className="h-3 w-3 text-emerald-500" /> AI follow-up + Gmail fallback
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Sparkles className="h-3 w-3 text-emerald-500" /> Reusable listing inquiry links
+                      <Sparkles className="h-3 w-3 text-emerald-500" /> Reusable inquiry-link attribution
                     </div>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    The $29 upgrade is for AI qualification, automated outreach, and clearer seller storytelling, not for simply creating the form.
+                  </p>
                   <Button
                     className="w-full border-0 bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700"
                     disabled={!stripeReady || action === "checkout"}
