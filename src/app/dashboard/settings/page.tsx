@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Sparkles, Star, Check, Loader2 } from "lucide-react";
+import { CreditCard, Sparkles, Star, Check, Loader2, Mail } from "lucide-react";
 
 type BillingStatus = {
   tier: "free" | "pro";
@@ -16,6 +16,11 @@ type BillingStatus = {
   aiConfigured: boolean;
   pdlConfigured: boolean;
   emailConfigured: boolean;
+  gmailDirectSendAvailable: boolean;
+  gmailConnected: boolean;
+  gmailSendingEnabled: boolean;
+  gmailSendAsEmail: string | null;
+  gmailLastSendError: string | null;
   listingImportConfigured: boolean;
   eventsUsed: number;
   signInsUsed: number;
@@ -31,6 +36,15 @@ type BillingStatus = {
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
 };
+
+type SettingsAction =
+  | "checkout"
+  | "portal"
+  | "gmail-connect"
+  | "gmail-disconnect"
+  | "gmail-enable"
+  | "gmail-disable"
+  | null;
 
 async function redirectToBilling(endpoint: "/api/billing/checkout" | "/api/billing/portal") {
   const res = await fetch(endpoint, { method: "POST" });
@@ -51,11 +65,30 @@ export default function SettingsPage() {
   const { data: session } = useSession();
   const [billingStatus, setBillingStatus] = useState<BillingStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [action, setAction] = useState<"checkout" | "portal" | null>(null);
+  const [action, setAction] = useState<SettingsAction>(null);
+
+  const loadBillingStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/billing/status");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to load billing status");
+      }
+
+      setBillingStatus(data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load billing status";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const billingResult = params.get("billing");
+    const gmailResult = params.get("gmail");
 
     if (billingResult === "success") {
       toast.success("Billing updated. Refreshing your subscription status.");
@@ -64,44 +97,112 @@ export default function SettingsPage() {
     if (billingResult === "cancelled") {
       toast.message("Checkout cancelled.");
     }
+
+    if (gmailResult === "connected") {
+      toast.success("Gmail direct send connected.");
+    }
+
+    if (gmailResult === "denied") {
+      toast.message("Gmail connection was cancelled.");
+    }
+
+    if (gmailResult === "missing-refresh-token") {
+      toast.error("Google did not return a refresh token. Try connecting Gmail again.");
+    }
+
+    if (gmailResult === "not-configured") {
+      toast.error("Google OAuth is not configured for Gmail direct send.");
+    }
+
+    if (gmailResult === "error") {
+      toast.error("Unable to connect Gmail right now.");
+    }
+
+    if (billingResult || gmailResult) {
+      params.delete("billing");
+      params.delete("gmail");
+      const nextQuery = params.toString();
+      const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}`;
+      window.history.replaceState({}, "", nextUrl);
+    }
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadBillingStatus() {
-      try {
-        const res = await fetch("/api/billing/status");
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to load billing status");
-        }
-
-        if (!cancelled) {
-          setBillingStatus(data);
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to load billing status";
-        if (!cancelled) {
-          toast.error(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadBillingStatus();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void loadBillingStatus();
+  }, [loadBillingStatus]);
 
   const isPro = billingStatus?.tier === "pro";
   const stripeReady = billingStatus?.stripeConfigured ?? false;
+
+  const followUpMode = useMemo(() => {
+    if (!billingStatus) {
+      return "Checking...";
+    }
+
+    if (billingStatus.gmailConnected && billingStatus.gmailSendingEnabled) {
+      return "Direct Gmail send";
+    }
+
+    if (billingStatus.emailConfigured) {
+      return "Platform email (Resend)";
+    }
+
+    return "Draft only";
+  }, [billingStatus]);
+
+  const handleGmailDisconnect = useCallback(async () => {
+    try {
+      setAction("gmail-disconnect");
+      const res = await fetch("/api/integrations/gmail/disconnect", {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to disconnect Gmail");
+      }
+
+      toast.success("Gmail direct send disconnected.");
+      await loadBillingStatus();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to disconnect Gmail";
+      toast.error(message);
+    } finally {
+      setAction(null);
+    }
+  }, [loadBillingStatus]);
+
+  const handleGmailToggle = useCallback(
+    async (enabled: boolean) => {
+      try {
+        setAction(enabled ? "gmail-enable" : "gmail-disable");
+        const res = await fetch("/api/integrations/gmail/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to update Gmail send preference");
+        }
+
+        toast.success(
+          enabled
+            ? "Gmail direct send enabled for follow-ups."
+            : "Platform email is active for follow-ups."
+        );
+        await loadBillingStatus();
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to update Gmail send preference";
+        toast.error(message);
+      } finally {
+        setAction(null);
+      }
+    },
+    [loadBillingStatus]
+  );
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -165,7 +266,12 @@ export default function SettingsPage() {
                 {
                   label: "Transactional Email",
                   configured: billingStatus.emailConfigured,
-                  detail: "Required to send follow-up emails instead of saving drafts only",
+                  detail: "Required for platform email delivery and Gmail send fallback",
+                },
+                {
+                  label: "Gmail Direct Send",
+                  configured: billingStatus.gmailDirectSendAvailable,
+                  detail: "Optional advanced follow-up delivery from an agent Gmail inbox",
                 },
                 {
                   label: "Listing Data Service",
@@ -189,6 +295,148 @@ export default function SettingsPage() {
                   </Badge>
                 </div>
               ))}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-base">Follow-up Delivery</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Choose whether Pro follow-up emails go out through OpenHouse or directly from your
+                Gmail inbox.
+              </p>
+            </div>
+            <Badge
+              className={
+                billingStatus?.gmailConnected && billingStatus?.gmailSendingEnabled
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
+                  : "border-border/70 bg-card/60 text-muted-foreground"
+              }
+            >
+              {followUpMode}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {loading || !billingStatus ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading delivery settings...
+            </div>
+          ) : (
+            <>
+              <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-emerald-500" />
+                      <p className="text-sm font-medium">Gmail direct send</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {billingStatus.gmailConnected
+                        ? `Connected as ${billingStatus.gmailSendAsEmail}`
+                        : "Connect a Gmail inbox if you want follow-up emails to come from an agent mailbox instead of the platform sender."}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      If Gmail send fails, OpenHouse automatically falls back to Resend when it is
+                      configured. Otherwise the system saves a draft only.
+                    </p>
+                  </div>
+                  <Badge
+                    className={
+                      billingStatus.gmailConnected
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
+                        : "border-border/70 bg-card/60 text-muted-foreground"
+                    }
+                  >
+                    {billingStatus.gmailConnected ? "Connected" : "Not connected"}
+                  </Badge>
+                </div>
+              </div>
+
+              {billingStatus.gmailLastSendError && (
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900">
+                  <p className="font-medium">Last Gmail send issue</p>
+                  <p className="mt-1 text-amber-800">{billingStatus.gmailLastSendError}</p>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-3">
+                {!billingStatus.gmailConnected ? (
+                  <Button
+                    disabled={!billingStatus.gmailDirectSendAvailable || action === "gmail-connect"}
+                    onClick={() => {
+                      setAction("gmail-connect");
+                      window.location.href = "/api/integrations/gmail/connect?returnTo=/dashboard/settings";
+                    }}
+                  >
+                    {action === "gmail-connect" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Mail className="mr-2 h-4 w-4" />
+                    )}
+                    Connect Gmail
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant={billingStatus.gmailSendingEnabled ? "outline" : "default"}
+                      disabled={
+                        action === "gmail-enable" ||
+                        action === "gmail-disable" ||
+                        action === "gmail-disconnect"
+                      }
+                      onClick={() => {
+                        void handleGmailToggle(!billingStatus.gmailSendingEnabled);
+                      }}
+                    >
+                      {action === "gmail-enable" || action === "gmail-disable" ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Mail className="mr-2 h-4 w-4" />
+                      )}
+                      {billingStatus.gmailSendingEnabled
+                        ? "Use Platform Email Instead"
+                        : "Use Gmail Direct Send"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={
+                        action === "gmail-enable" ||
+                        action === "gmail-disable" ||
+                        action === "gmail-disconnect"
+                      }
+                      onClick={() => {
+                        void handleGmailDisconnect();
+                      }}
+                    >
+                      {action === "gmail-disconnect" ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Mail className="mr-2 h-4 w-4" />
+                      )}
+                      Disconnect Gmail
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {!billingStatus.gmailDirectSendAvailable && (
+                <p className="text-sm text-amber-700">
+                  Add Google OAuth client credentials before enabling Gmail direct send.
+                </p>
+              )}
+
+              {!billingStatus.emailConfigured && !billingStatus.gmailSendingEnabled && (
+                <p className="text-sm text-amber-700">
+                  Platform email is not configured. If Gmail direct send stays off, follow-ups will
+                  save as drafts only.
+                </p>
+              )}
             </>
           )}
         </CardContent>

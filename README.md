@@ -58,12 +58,14 @@ Use only one canonical pair:
 ```bash
 AUTH_GOOGLE_ID=...
 AUTH_GOOGLE_SECRET=...
+GMAIL_TOKEN_ENCRYPTION_KEY=... # optional, otherwise AUTH_SECRET is used
 ```
 
-Google Cloud OAuth redirect URI:
+Google Cloud OAuth redirect URIs:
 
 ```text
 https://openhouse.kevv.ai/api/auth/callback/google
+https://openhouse.kevv.ai/api/integrations/gmail/callback
 ```
 
 ### Stripe Billing
@@ -138,6 +140,30 @@ RESEND_REPLY_TO_EMAIL=agent@openhouse.kevv.ai
 
 If Resend is missing, AI follow-up still generates a draft, but the platform will not send the email.
 
+### Optional Gmail Direct Send
+
+OpenHouse can optionally send Pro follow-up emails directly from an agent Gmail inbox. This is separate from Google sign-in and uses an additional consent flow inside `/dashboard/settings`.
+
+- Required env:
+
+```bash
+AUTH_GOOGLE_ID=...
+AUTH_GOOGLE_SECRET=...
+GMAIL_TOKEN_ENCRYPTION_KEY=... # recommended
+```
+
+- Required Google OAuth redirect URI:
+
+```text
+https://openhouse.kevv.ai/api/integrations/gmail/callback
+```
+
+- Behavior:
+  - Agent connects a Gmail inbox from Settings
+  - Follow-up delivery can be toggled between `Direct Gmail send` and `Platform email (Resend)`
+  - If Gmail delivery fails, OpenHouse falls back to Resend when configured
+  - If both Gmail and Resend fail, OpenHouse stores a draft instead of dropping the follow-up
+
 ## Stripe Setup
 
 1. In Stripe, create a product named `OpenHouse Pro`.
@@ -176,6 +202,7 @@ https://openhouse.kevv.ai/api/billing/webhook
 ## Production Notes
 
 - Google auth is the only account access method.
+- Gmail direct send is optional and only affects follow-up delivery, not sign-in.
 - Stripe webhooks control subscription state and Pro entitlements.
 - Public property Q&A and sign-in endpoints include baseline request throttling.
 - AI and PDL features degrade safely if their environment variables are missing.

@@ -26,6 +26,11 @@ export const users = mysqlTable("oh_users", {
     email: varchar("email", { length: 320 }).notNull().unique(),
     passwordHash: varchar("passwordHash", { length: 255 }),
     googleId: varchar("googleId", { length: 128 }),
+    gmailRefreshTokenEncrypted: text("gmailRefreshTokenEncrypted"),
+    gmailSendAsEmail: varchar("gmailSendAsEmail", { length: 320 }),
+    gmailSendingEnabled: boolean("gmailSendingEnabled").default(false).notNull(),
+    gmailConnectedAt: timestamp("gmailConnectedAt"),
+    gmailLastSendError: text("gmailLastSendError"),
 
     // Agent Profile
     fullName: varchar("fullName", { length: 200 }).notNull(),

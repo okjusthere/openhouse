@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { getBillingSnapshot } from "@/lib/billing";
 import { hasAiConfiguration } from "@/lib/ai/openai";
 import { isEmailConfigured } from "@/lib/email";
+import { isGmailDirectSendAvailable } from "@/lib/gmail";
 import { isListingImportConfigured } from "@/lib/listing-import";
 
 export async function GET() {
@@ -24,6 +25,13 @@ export async function GET() {
     aiConfigured: hasAiConfiguration(),
     pdlConfigured: Boolean(process.env.PDL_API_KEY),
     emailConfigured: isEmailConfigured(),
+    gmailDirectSendAvailable: isGmailDirectSendAvailable(),
+    gmailConnected: Boolean(
+      snapshot.user.gmailRefreshTokenEncrypted && snapshot.user.gmailSendAsEmail
+    ),
+    gmailSendingEnabled: snapshot.user.gmailSendingEnabled,
+    gmailSendAsEmail: snapshot.user.gmailSendAsEmail,
+    gmailLastSendError: snapshot.user.gmailLastSendError,
     listingImportConfigured: isListingImportConfigured(),
     googleAuthConfigured: Boolean(
       (process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID) &&

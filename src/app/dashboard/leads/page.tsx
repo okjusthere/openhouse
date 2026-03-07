@@ -160,8 +160,10 @@ export default function LeadsPage() {
             });
             if (res.ok) {
                 const data = await res.json();
-                if (data.deliveryMode === "sent") {
-                    toast.success("Follow-up email sent");
+                if (data.deliveryMode === "gmail") {
+                    toast.success("Follow-up email sent from Gmail");
+                } else if (data.deliveryMode === "resend") {
+                    toast.success("Follow-up email sent via platform email");
                 } else {
                     toast.success("Follow-up draft generated");
                 }
