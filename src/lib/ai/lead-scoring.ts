@@ -3,7 +3,7 @@
  * 
  * Two-phase scoring:
  * 1. Rule-based scoring from sign-in data (instant)
- * 2. GPT-enhanced analysis with enriched data (async)
+ * 2. GPT-enhanced analysis with sign-in context (async)
  */
 
 interface SignInData {
@@ -16,17 +16,6 @@ interface SignInData {
     buyingTimeline?: string | null;
     priceRange?: string | null;
     customAnswers?: Record<string, string> | null;
-}
-
-interface PdlData {
-    job_title?: string;
-    job_company_name?: string;
-    job_company_industry?: string;
-    inferred_salary?: string;
-    education?: Array<{ school?: { name?: string }; degrees?: string[] }>;
-    linkedin_url?: string;
-    location_name?: string;
-    [key: string]: unknown;
 }
 
 export interface LeadScore {
@@ -135,13 +124,12 @@ export function calculateRuleBasedScore(data: SignInData): LeadScore {
 }
 
 /**
- * Phase 2: GPT-enhanced scoring with PDL enrichment data.
- * Builds a prompt using sign-in + enriched data, asks GPT for refined analysis.
+ * Phase 2: GPT-enhanced scoring using sign-in data.
+ * Builds a prompt using sign-in context and asks GPT for refined analysis.
  */
 export function buildGptScoringPrompt(
     signInData: SignInData,
-    ruleScore: LeadScore,
-    pdlData?: PdlData | null
+    ruleScore: LeadScore
 ): string {
     let prompt = `You are a real estate lead scoring AI. Analyze this open house visitor and provide a refined lead assessment.
 
@@ -163,24 +151,11 @@ export function buildGptScoringPrompt(
 - Urgency: ${ruleScore.urgency}/25
 - Current Tier: ${ruleScore.tier}`;
 
-    if (pdlData) {
-        prompt += `
-
-## Enriched Profile (People Data Lab)
-- Job Title: ${pdlData.job_title || "Unknown"}
-- Company: ${pdlData.job_company_name || "Unknown"}
-- Industry: ${pdlData.job_company_industry || "Unknown"}
-- Estimated Income: ${pdlData.inferred_salary || "Unknown"}
-- Location: ${pdlData.location_name || "Unknown"}
-- LinkedIn: ${pdlData.linkedin_url ? "Available" : "Not found"}
-- Education: ${pdlData.education?.[0]?.school?.name || "Unknown"}`;
-    }
-
     prompt += `
 
 ## Your Task
 Based on ALL available data, provide:
-1. An adjusted overall score (0-100) — factor in job/income/education signals
+1. An adjusted overall score (0-100)
 2. Adjusted tier (hot/warm/cold)
 3. A concise 2-sentence recommendation for the agent with a specific follow-up strategy
 4. Key signals that influenced your scoring
@@ -190,8 +165,7 @@ Respond in JSON format:
   "adjustedScore": number,
   "adjustedTier": "hot" | "warm" | "cold",
   "recommendation": "string",
-  "keySignals": ["string"],
-  "financialStrengthAdjustment": number
+  "keySignals": ["string"]
 }`;
 
     return prompt;
@@ -207,15 +181,12 @@ export function mergeGptScore(
         adjustedTier?: string;
         recommendation?: string;
         keySignals?: string[];
-        financialStrengthAdjustment?: number;
     }
 ): LeadScore {
     return {
         ...ruleScore,
         overallScore: gptResponse.adjustedScore ?? ruleScore.overallScore,
         tier: (gptResponse.adjustedTier as "hot" | "warm" | "cold") ?? ruleScore.tier,
-        financialStrength:
-            ruleScore.financialStrength + (gptResponse.financialStrengthAdjustment ?? 0),
         recommendation: gptResponse.recommendation ?? ruleScore.recommendation,
         signals: {
             ...ruleScore.signals,

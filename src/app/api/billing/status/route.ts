@@ -23,7 +23,6 @@ export async function GET() {
     tier: snapshot.tier,
     stripeConfigured: snapshot.stripeConfigured,
     aiConfigured: hasAiConfiguration(),
-    pdlConfigured: Boolean(process.env.PDL_API_KEY),
     emailConfigured: isEmailConfigured(),
     gmailDirectSendAvailable: isGmailDirectSendAvailable(),
     gmailConnected: Boolean(
@@ -40,8 +39,6 @@ export async function GET() {
     eventsUsed: snapshot.eventsUsed,
     signInsUsed: snapshot.signInsUsed,
     limits: snapshot.limits,
-    pdlUsed: snapshot.user.pdlCreditsUsed,
-    pdlLimit: snapshot.user.pdlCreditsLimit,
     aiQueriesUsed: snapshot.user.aiQueriesUsed,
     aiQueriesLimit: snapshot.user.aiQueriesLimit,
     usageResetAt: snapshot.user.usageResetAt,

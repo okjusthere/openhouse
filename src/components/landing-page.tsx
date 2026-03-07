@@ -16,7 +16,6 @@ import {
   ChevronRight,
   Clock3,
   FileCheck2,
-  Globe2,
   MessageSquareText,
   ShieldCheck,
   Sparkles,
@@ -36,7 +35,7 @@ const NAV_LINKS = [
 const HERO_STATS = [
   { value: "3x", label: "faster lead qualification" },
   { value: "< 60s", label: "from sign-in to scored lead" },
-  { value: "100", label: "PDL enrichments included in Pro" },
+  { value: "500", label: "AI property Q&A messages in Pro" },
 ];
 
 const PRODUCT_PILLARS = [
@@ -51,7 +50,7 @@ const PRODUCT_PILLARS = [
     id: "02",
     title: "AI-native lead intelligence",
     description:
-      "Rule + LLM scoring, tiering, recommendation text, and enrichment signals in a single profile built for next-action speed.",
+      "Rule + LLM scoring, tiering, recommendation text, and AI-assisted next actions in a single profile built for next-action speed.",
     icon: Brain,
   },
   {
@@ -82,7 +81,7 @@ const WORKFLOW_STEPS = [
     step: "Step 2",
     title: "Capture and score automatically",
     description:
-      "Visitors sign in, leads are scored, and Pro plans run enrichment + recommendation logic with no manual trigger.",
+      "Visitors sign in, leads are scored, and Pro plans run recommendation logic with no manual trigger.",
     icon: Zap,
   },
   {
@@ -166,9 +165,9 @@ const PRICING = [
     features: [
       "Unlimited events and sign-ins",
       "AI lead scoring + recommendations",
-      "100 PDL enrichments / month",
       "Property Q&A chatbot (500 queries / month)",
       "AI follow-up generation",
+      "Reusable listing inquiry links",
       "Detailed seller reporting",
     ],
     cta: "Start Pro",
@@ -183,7 +182,7 @@ const FAQ = [
   },
   {
     q: "Do I need Pro to score leads?",
-    a: "Free captures sign-ins. Pro unlocks AI scoring, enrichment, recommendations, and follow-up generation.",
+    a: "Free captures sign-ins. Pro unlocks AI scoring, recommendations, property Q&A, and follow-up generation.",
   },
   {
     q: "Does the platform replace legal or compliance review?",
@@ -268,7 +267,7 @@ export default function LandingPage() {
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               OpenHouse is an AI-native event workflow for modern brokerages: branded sign-in,
-              automatic lead scoring, enrichment, and seller-ready reporting in one operational
+              automatic lead scoring, follow-up, and seller-ready reporting in one operational
               surface.
             </p>
 
@@ -352,9 +351,9 @@ export default function LandingPage() {
                   icon: Brain,
                 },
                 {
-                  title: "PDL profile enriched",
+                  title: "Property Q&A context ready",
                   meta: "11:27 AM",
-                  icon: Globe2,
+                  icon: MessageSquareText,
                 },
                 {
                   title: "Follow-up draft ready",
@@ -652,8 +651,8 @@ export default function LandingPage() {
           </div>
 
           <p className="mt-6 text-sm text-muted-foreground">
-            Pro includes 100 PDL enrichments and 500 property Q&A messages monthly. Usage is hard
-            capped to the plan allowance unless you add a higher-tier package later.
+            Pro includes AI scoring, follow-up generation, and 500 property Q&A messages monthly.
+            Usage is hard capped to the plan allowance unless you add a higher-tier package later.
           </p>
         </section>
 

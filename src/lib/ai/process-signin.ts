@@ -7,27 +7,23 @@ import {
     mergeGptScore,
     type LeadScore,
 } from "@/lib/ai/lead-scoring";
-import { enrichContact } from "@/lib/ai/pdl-enrichment";
 import { chatCompletion } from "@/lib/ai/openai";
 import { isPro } from "@/lib/plans";
 
 interface ProcessSignInOptions {
     eventId: number;
     signInId: number;
-    userId: number;
     subscriptionTier: string;
 }
 
 export interface ProcessSignInResult {
     score: LeadScore;
-    pdl: { found: boolean; cached: boolean } | null;
     enhanced: boolean;
 }
 
 export async function processSignInWithAi({
     eventId,
     signInId,
-    userId,
     subscriptionTier,
 }: ProcessSignInOptions): Promise<ProcessSignInResult> {
     const db = getDb();
@@ -58,31 +54,8 @@ export async function processSignInWithAi({
     });
 
     let finalScore = ruleScore;
-    let pdlResult: Awaited<ReturnType<typeof enrichContact>> | null = null;
-
     if (userIsPro) {
-        // Phase 2a: PDL enrichment (Pro only)
-        try {
-            pdlResult = await enrichContact(userId, {
-                email: signIn.email || undefined,
-                phone: signIn.phone || undefined,
-            });
-
-            if (pdlResult.found && pdlResult.data) {
-                await db
-                    .update(signIns)
-                    .set({
-                        pdlEnriched: true,
-                        pdlData: pdlResult.data,
-                        pdlEnrichedAt: new Date(),
-                    })
-                    .where(eq(signIns.id, signInId));
-            }
-        } catch (error) {
-            console.error("[AI] PDL enrichment failed:", error);
-        }
-
-        // Phase 2b: GPT enhanced scoring (Pro only)
+        // Phase 2: GPT enhanced scoring (Pro only)
         try {
             const gptPrompt = buildGptScoringPrompt(
                 {
@@ -95,8 +68,7 @@ export async function processSignInWithAi({
                     buyingTimeline: signIn.buyingTimeline,
                     priceRange: signIn.priceRange,
                 },
-                ruleScore,
-                pdlResult?.data as Record<string, unknown> | null
+                ruleScore
             );
 
             const gptResult = await chatCompletion({
@@ -135,7 +107,6 @@ export async function processSignInWithAi({
 
     return {
         score: finalScore,
-        pdl: pdlResult ? { found: pdlResult.found, cached: pdlResult.cached } : null,
         enhanced: userIsPro,
     };
 }

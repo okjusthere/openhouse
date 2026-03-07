@@ -202,7 +202,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </div>
                             <p className="text-xs text-muted-foreground">
                                 {isPro
-                                    ? "Billing-backed AI scoring, enrichment, and outbound workflows enabled."
+                                    ? "Billing-backed AI scoring, follow-up, and property Q&A workflows enabled."
                                     : "Upgrade to Pro for AI scoring, outbound follow-up, and property Q&A."}
                             </p>
                             {!isPro && (

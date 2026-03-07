@@ -14,7 +14,6 @@ type BillingStatus = {
   stripeConfigured: boolean;
   googleAuthConfigured: boolean;
   aiConfigured: boolean;
-  pdlConfigured: boolean;
   emailConfigured: boolean;
   gmailDirectSendAvailable: boolean;
   gmailConnected: boolean;
@@ -24,8 +23,6 @@ type BillingStatus = {
   listingImportConfigured: boolean;
   eventsUsed: number;
   signInsUsed: number;
-  pdlUsed: number;
-  pdlLimit: number;
   aiQueriesUsed: number;
   aiQueriesLimit: number;
   usageResetAt: string | null;
@@ -259,11 +256,6 @@ export default function SettingsPage() {
                   detail: "Required for AI scoring, follow-up generation, and property Q&A",
                 },
                 {
-                  label: "People Data Labs",
-                  configured: billingStatus.pdlConfigured,
-                  detail: "Required for Pro enrichment lookups",
-                },
-                {
                   label: "Transactional Email",
                   configured: billingStatus.emailConfigured,
                   detail: "Required for platform email delivery and Gmail send fallback",
@@ -491,17 +483,6 @@ export default function SettingsPage() {
                   </p>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
-                  <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">PDL usage</p>
-                  <p className="mt-2 text-lg font-semibold">
-                    {billingStatus.pdlUsed}
-                    {billingStatus.pdlLimit > 0 && (
-                      <span className="ml-1 text-sm font-normal text-muted-foreground">
-                        / {billingStatus.pdlLimit}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
                   <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">AI Q&A usage</p>
                   <p className="mt-2 text-lg font-semibold">
                     {billingStatus.aiQueriesUsed}
@@ -530,10 +511,10 @@ export default function SettingsPage() {
                       <Check className="h-3 w-3 text-emerald-500" /> AI lead scoring
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Check className="h-3 w-3 text-emerald-500" /> 100 PDL / month
+                      <Check className="h-3 w-3 text-emerald-500" /> 500 AI Q&A / month
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Check className="h-3 w-3 text-emerald-500" /> 500 AI Q&A / month
+                      <Check className="h-3 w-3 text-emerald-500" /> Gmail direct send + fallback
                     </div>
                   </div>
 
@@ -573,13 +554,13 @@ export default function SettingsPage() {
                       <Sparkles className="h-3 w-3 text-emerald-500" /> AI lead scoring
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Sparkles className="h-3 w-3 text-emerald-500" /> 100 PDL credits / month
+                      <Sparkles className="h-3 w-3 text-emerald-500" /> AI property Q&A
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Sparkles className="h-3 w-3 text-emerald-500" /> AI follow-up drafts
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Sparkles className="h-3 w-3 text-emerald-500" /> 500 AI Q&A messages / month
+                      <Sparkles className="h-3 w-3 text-emerald-500" /> Reusable listing inquiry links
                     </div>
                   </div>
                   <Button

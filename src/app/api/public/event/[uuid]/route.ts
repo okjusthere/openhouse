@@ -208,7 +208,6 @@ export async function POST(
             buyingTimeline: data.buyingTimeline || null,
             priceRange: data.priceRange || null,
             customAnswers: data.customAnswers || null,
-            pdlEnriched: false,
             followUpSent: false,
             crmSyncStatus: "pending",
         });
@@ -223,7 +222,6 @@ export async function POST(
                 await processSignInWithAi({
                     eventId: event.id,
                     signInId: Number(result.insertId),
-                    userId: owner.id,
                     subscriptionTier: tier,
                 });
             } catch (processingError) {

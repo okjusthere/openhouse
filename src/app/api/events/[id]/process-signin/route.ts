@@ -1,6 +1,6 @@
 /**
  * AI Sign-In Processing API
- * POST /api/events/[id]/process-signin — Process a sign-in with AI scoring + PDL enrichment
+ * POST /api/events/[id]/process-signin — Process a sign-in with AI scoring
  */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -43,7 +43,6 @@ export async function POST(
         const result = await processSignInWithAi({
             eventId: Number(id),
             signInId: Number(signInId),
-            userId: Number(session.user.id),
             subscriptionTier: session.user.subscriptionTier || "free",
         });
 

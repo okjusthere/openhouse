@@ -43,12 +43,6 @@ interface LeadData {
         tier: string;
         recommendation: string;
     } | null;
-    pdlEnriched: boolean;
-    pdlData: {
-        job_title?: string;
-        job_company_name?: string;
-        linkedin_url?: string;
-    } | null;
     aiRecommendation: string | null;
     followUpSent: boolean;
     signedInAt: string;
@@ -298,20 +292,10 @@ export default function LeadsPage() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <h3 className="font-semibold text-sm">{lead.fullName}</h3>
-                                                {lead.pdlEnriched && (
-                                                    <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-[10px]">
-                                                        PDL ✓
-                                                    </Badge>
-                                                )}
                                             </div>
                                             <p className="text-xs text-muted-foreground">
                                                 {[lead.phone, lead.email].filter(Boolean).join(" · ") || "No contact info"}
                                             </p>
-                                            {lead.pdlData?.job_title && (
-                                                <p className="text-xs text-muted-foreground mt-0.5">
-                                                    {lead.pdlData.job_title}{lead.pdlData.job_company_name ? ` at ${lead.pdlData.job_company_name}` : ""}
-                                                </p>
-                                            )}
 
                                             {/* Score Breakdown */}
                                             {score && (

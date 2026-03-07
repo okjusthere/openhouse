@@ -2,7 +2,7 @@
  * AI Follow-Up Email Generator
  * 
  * Generates personalized follow-up emails based on visitor data,
- * lead score, and enrichment profile.
+ * lead score, and visit intent.
  */
 import { chatCompletion } from "./openai";
 import type { LeadScore } from "./lead-scoring";
@@ -18,11 +18,6 @@ interface FollowUpContext {
     hasAgent?: boolean;
     isPreApproved?: string | null;
     leadScore?: LeadScore | null;
-    pdlData?: {
-        job_title?: string;
-        job_company_name?: string;
-        [key: string]: unknown;
-    } | null;
 }
 
 /**
@@ -47,13 +42,6 @@ export async function generateFollowUpEmail(
 
     if (context.leadScore) {
         visitorProfile += `\n- Lead Score: ${context.leadScore.overallScore}/100 (${tier})`;
-    }
-
-    if (context.pdlData?.job_title) {
-        visitorProfile += `\n- Job Title: ${context.pdlData.job_title}`;
-    }
-    if (context.pdlData?.job_company_name) {
-        visitorProfile += `\n- Company: ${context.pdlData.job_company_name}`;
     }
 
     const prompt = `You are writing a follow-up email from a real estate agent after an Open House visit.

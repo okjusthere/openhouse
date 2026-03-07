@@ -49,13 +49,10 @@ export async function GET(
         "Interest Level", "Buying Timeline", "Price Range",
         "Capture Mode",
         "Lead Score", "Lead Tier", "AI Recommendation",
-        "PDL Enriched", "PDL Job Title", "PDL Company", "PDL Industry",
-        "PDL Salary", "PDL LinkedIn", "PDL Location",
         "Signed In At",
     ];
 
     const rows = eventSignIns.map((s) => {
-        const pdlData = (s.pdlData as Record<string, unknown> | null) || {};
         const captureMode = inferCaptureMode({
             captureMode: s.captureMode,
             eventPublicMode: event.publicMode,
@@ -75,13 +72,6 @@ export async function GET(
             (s.leadScore as Record<string, unknown> | null)?.overallScore ?? "",
             s.leadTier || "",
             s.aiRecommendation || "",
-            s.pdlEnriched ? "Yes" : "No",
-            String(pdlData.job_title || ""),
-            String(pdlData.job_company_name || ""),
-            String(pdlData.job_company_industry || ""),
-            String(pdlData.inferred_salary || ""),
-            String(pdlData.linkedin_url || ""),
-            String(pdlData.location_name || ""),
             s.signedInAt?.toISOString() || "",
         ];
     });

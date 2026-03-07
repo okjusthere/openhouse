@@ -112,7 +112,6 @@ export async function POST(
                 hasAgent: signIn.hasAgent ?? false,
                 isPreApproved: signIn.isPreApproved,
                 leadScore: signIn.leadScore as LeadScore | null,
-                pdlData: signIn.pdlData as Record<string, unknown> | null,
             });
 
             let deliveryMode: DeliveryMode = "draft";

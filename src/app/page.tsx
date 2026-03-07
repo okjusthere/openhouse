@@ -4,7 +4,7 @@ import { absoluteUrl, siteConfig } from "@/lib/site";
 
 const homeTitle = "AI-Native Open House Platform for North American Teams";
 const homeDescription =
-  "OpenHouse is a brokerage-ready platform for branded open house sign-ins, AI lead scoring, enrichment, and seller-facing reporting.";
+  "OpenHouse is a brokerage-ready platform for branded open house sign-ins, AI lead scoring, follow-up, property Q&A, and seller-facing reporting.";
 
 const faqItems = [
   {
@@ -14,7 +14,7 @@ const faqItems = [
   {
     question: "Do I need Pro to score leads?",
     answer:
-      "Free captures sign-ins. Pro unlocks AI scoring, enrichment, recommendations, and follow-up generation.",
+      "Free captures sign-ins. Pro unlocks AI scoring, recommendations, property Q&A, and follow-up generation.",
   },
   {
     question: "Does the platform replace legal or compliance review?",

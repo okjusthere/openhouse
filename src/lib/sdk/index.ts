@@ -15,12 +15,9 @@ export type {
     InsertSignIn,
     AiConversation,
     InsertAiConversation,
-    PdlCache,
-    InsertPdlCache,
 } from "@/lib/db/schema";
 
 export type { LeadScore } from "@/lib/ai/lead-scoring";
-export type { PdlEnrichmentResult } from "@/lib/ai/pdl-enrichment";
 
 // === Services ===
 export {
@@ -28,11 +25,6 @@ export {
     buildGptScoringPrompt,
     mergeGptScore,
 } from "@/lib/ai/lead-scoring";
-
-export {
-    enrichContact,
-    getPdlUsage,
-} from "@/lib/ai/pdl-enrichment";
 
 export {
     chatWithProperty,
@@ -50,7 +42,6 @@ export {
 export {
     PLAN_LIMITS,
     isPro,
-    hasPdlCredits,
 } from "@/lib/plans";
 
 export type { PlanTier } from "@/lib/plans";

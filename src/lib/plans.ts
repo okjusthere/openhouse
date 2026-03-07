@@ -18,7 +18,7 @@ export const PLAN_LIMITS = {
     pro: {
         maxEventsPerMonth: Infinity,
         maxSignInsPerMonth: Infinity,
-        pdlCredits: 100,
+        pdlCredits: 0,
         aiQueries: 500,
         aiLeadScoring: true,
         aiFollowUp: true,
@@ -39,7 +39,7 @@ export function isPro(tier: string): boolean {
 }
 
 /**
- * Check if user has remaining PDL credits.
+ * Generic helper for capped usage counters.
  */
 export function hasPdlCredits(used: number, limit: number): boolean {
     return used < limit;
